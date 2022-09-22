@@ -25,18 +25,19 @@ func init(){
 // suppose we have already know the space id
 func projectOver(messageevent *MessageEvent){
 	logrus.Debug("project over")
-	//TODO：space id 
-	space_id := "7145117180906979330"
+
+	//TODO: delete the following sentence if space id is added correctly 
+	global.Rob.GroupSpace[messageevent.Message.Chat_id] = "7145117180906979330"
+	space_id := global.Rob.GroupSpace[messageevent.Message.Chat_id]
 
 	//TODO: permission
 	allNode := global.Cli.GetAllNodes(space_id)
 	requirement := map[string]int{"项目介绍":100, "产品需求文档":200,"产品测试记录":200,"用户手册":300}
 	tooShort := []string{}
-	logrus.Debug(allNode)
 
 	for _, node := range allNode{ 
 		if requireSize, exist := requirement[node.Title]; exist{
-			logrus.Debug("checking ", node.Title, " required size: ", requireSize)
+			logrus.Trace("checking ", node.Title, " required size: ", requireSize)
 			size := recursiveCountNodeSize(space_id, &node)
 			if size < requireSize{
 				tooShort = append(tooShort, node.Title)
@@ -70,13 +71,13 @@ func projectOver(messageevent *MessageEvent){
 }
 
 func recursiveCountNodeSize(space_id string, node *feishuapi.NodeInfo) int{
-	// allNode := global.Cli.GetAllNodes(space_id, node.NodeToken)
-	allNode := []feishuapi.NodeInfo{}
 	size := 0
-	for _, node := range allNode{
-		size += recursiveCountNodeSize(space_id,&node)
+	if node.HasChild{
+		allNode := global.Cli.GetAllNodes(space_id, node.NodeToken)
+		for _, node := range allNode{
+			size += recursiveCountNodeSize(space_id,&node)
+		}
 	}
-
 
 	methon := "GET"
 	path := "/open-apis/docx/v1/documents/" + node.ObjToken +"/raw_content"
@@ -85,7 +86,7 @@ func recursiveCountNodeSize(space_id string, node *feishuapi.NodeInfo) int{
 	body := map[string]string{}
 	resp := global.Cli.Request(methon, path, query, headers, body)
 	size += len(resp["content"].(string))/3 // 3 bytes per chinese character
-	logrus.WithFields(logrus.Fields{"resp":resp["content"].(string)}).Debug("the ", node.Title, " size is: ", size)
+	logrus.WithFields(logrus.Fields{"resp":resp["content"].(string)}).Trace("the ", node.Title, " size is: ", size)
 	// api 频率限定为每秒 5 次，所以这里需要 sleep 200ms
 	time.Sleep(200 * time.Millisecond)
 	return size
