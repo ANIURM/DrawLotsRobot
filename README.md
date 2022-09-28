@@ -7,6 +7,7 @@
 ## Usage
 
 - `app/event_handler` 自定义飞书事件处理方法
+- `app/timer` 自定义定时任务
 - `app/controller` 自定义 service controller
 - `app/router` 为自定义的 service controller 注册路由
 - `config` 在 `Config` 类型定义中添加自定义的配置字段
