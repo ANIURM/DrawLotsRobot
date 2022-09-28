@@ -1,15 +1,11 @@
-package receiveMessage
+package timer
 
 import (
 	"xlab-feishu-robot/pkg/global"
 	"github.com/sirupsen/logrus"
-	_ "github.com/YasyaKarasu/feishuapi"
+	"github.com/robfig/cron/v3"
 	"time"
 )
-
-func init(){
-	groupMessageRegister(ReviewMeetingTimer, "复盘")
-}
 
 type TableInfo struct {
 	AppToken string
@@ -57,11 +53,13 @@ func NewFieldInfo(data map[string]interface{}) *FieldInfo{
 	}
 }
 
-func ReviewMeetingTimer(messageevent *MessageEvent) {
-	logrus.Info("review meeting timer")
+func CheckReviewMeeting(chatID string) {
+	logrus.Info("check review meeting")
 
-	//todo: space id
-	space_id := "7145117180906979330"
+	//TODO:delete this
+	global.Rob.GroupSpace[chatID] = "7145117180906979330"
+
+	space_id := global.Rob.GroupSpace[chatID]
 	allNode := global.Cli.GetAllNodes(space_id)
 	topFile := "排期甘特图"
 	secFile := "任务进度管理"
@@ -141,7 +139,17 @@ func ReviewMeetingTimer(messageevent *MessageEvent) {
 		}
 	}
 	if nearby {
-		global.Cli.Send("chat_id",messageevent.Message.Chat_id,"text","review meeting is nearby")
+		global.Cli.Send("chat_id",chatID,"text","review meeting is nearby")
 	}
-	
+}
+
+// chatID is the groupID
+func StartReviewMeetingTimer(chatID string){
+	logrus.Info("start review meeting timer")
+	c := cron.New()
+	// every day at 18:00
+	c.AddFunc("0 0 18 * * *", func() {
+		CheckReviewMeeting(chatID)
+	})
+	c.Start()
 }

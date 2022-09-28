@@ -6,7 +6,7 @@ import(
 
 // finite state machine
 type robotState struct {
-	GroupSpace map[string]string
+	GroupSpace map[string]string // groupID ---> spaceID
 }
 
 var Rob = robotState{
