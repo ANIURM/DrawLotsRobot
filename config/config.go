@@ -4,6 +4,7 @@ import (
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"xlab-feishu-robot/app/controller"
 )
 
 type Config struct {
@@ -18,6 +19,10 @@ type Config struct {
 	// add your configuration fields here
 	ExampleField2 struct {
 		ExampleField3 int
+	}
+	FeishuProjectFormPath struct {
+		AppToken string
+		TableId  string
 	}
 }
 
@@ -40,4 +45,5 @@ func ReadConfig() {
 
 func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	cli.Conf = C.Feishu
+	controller.P = C.FeishuProjectFormPath
 }
