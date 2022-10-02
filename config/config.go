@@ -24,6 +24,10 @@ type Config struct {
 		AppToken string
 		TableId  string
 	}
+	TemplateDocs struct {
+		SpaceId         string
+		ParentNodeToken string
+	}
 }
 
 var C Config
@@ -46,4 +50,5 @@ func ReadConfig() {
 func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	cli.Conf = C.Feishu
 	controller.P = C.FeishuProjectFormPath
+	controller.T = C.TemplateDocs
 }

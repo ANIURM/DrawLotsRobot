@@ -4,18 +4,44 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
+	"reflect"
+	"strings"
 	global "xlab-feishu-robot/pkg/global"
 )
 
 var (
 	P         FeishuProjectFormPath
+	T         TemplateDocs
 	MyProject NewProject
 )
 
+// 立项问卷信息，从config读取
 type FeishuProjectFormPath struct {
 	AppToken string
 	TableId  string
+}
+
+type TemplateDocs struct {
+	SpaceId         string
+	ParentNodeToken string
+}
+type Project struct {
+	ProjectId int
+
+	// project info
+	ProjectName      string
+	ProjectType      string // internal | external
+	ProjectLeaderIds string // JSON: Array<int> (array of employeeIds)
+	GroupId          string //不储存 groupId，因为一个 project 可能对应多个 group
+
+	// doc related info:
+	GanttDocUrl   string // 甘特图，其中的排期自动映射到飞书任务
+	PrdDocUrl     string // PRD
+	TechDocUrl    string // 技术文档
+	FeishuRepoUrl string // 飞书知识空间首页
+
+	// status
+	ProjectStatus string // beforeStart, pending, revising, hang, finished, aborted
 }
 
 type NewProject struct {
@@ -61,6 +87,8 @@ func (r *NewProject) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
+//先向用户发送鉴权链接，等待获取到UserAccessToken，然后再推送立项问卷链接。
+
 func InitProject(c *gin.Context) {
 	resp, _ := c.GetRawData()
 	temp := make(map[string]string)
@@ -71,10 +99,28 @@ func InitProject(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	//global.Cli.Send()
-	if UserAccessToken != "" {
-		CreateProject()
+
+	//if UserAccessToken != "" {
+	//	CreateProject()
+	//}
+
+}
+
+func setProjectType(projectProperties string) string {
+	if strings.Contains(projectProperties, "内部") {
+		return "internal"
+	} else {
+		return "external"
 	}
+}
+
+func getProjectLeaderIds(p ParticipatingMember) string {
+	var ProjectLeaderId interface{}
+	//TODO:
+	//在数据库中查找LeaderId
+
+	//ProjectLeaderId=QueryEmployeeByFullname(p.Name) (*[]Employee, error)
+	return "[" + "\"" + ProjectLeaderId.(string) + "\"" + "]"
 
 }
 
@@ -92,14 +138,55 @@ func CreateProject() bool {
 	}
 	manager := pjt.ProjectManager[0].ID
 
-	chatId := global.Cli.CreateGroup("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, "open_id", manager).ChatId
-	global.Cli.AddMembers(chatId, "open_id", "1", members)
-	spaceId := global.Cli.CreateKnowledgeSpace("【"+pjt.ProjectSource+"】"+pjt.ProjectName, pjt.ProjectProfile, "Bearer "+UserAccessToken).SpaceId
+	v := global.Cli.CreateGroup("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, "open_id", manager)
+	//将新建的群插入数据库，
+	//InsertGroupRecords(v []Group, "open_id")
+	global.Cli.AddMembers(v.ChatId, "open_id", "1", members)
+
+	//创建知识空间
+	s := global.Cli.CreateKnowledgeSpace("【"+pjt.ProjectSource+"】"+pjt.ProjectName, pjt.ProjectProfile, "Bearer "+UserAccessToken)
+
+	var botIds []string
 	robotId := global.Cli.GetRobotInfo().OpenId
-	logrus.Println(robotId, "rob")
-	global.Cli.AddMembersToKnowledgeSpace(spaceId, members, "open_id")
+	botIds = append(botIds, robotId)
+	//设置群成员可见
+	var chats []string
+	chats = append(chats, v.ChatId)
+	global.Cli.AddMembersToKnowledgeSpace(s.SpaceId, chats, "openchat")
+	//将机器人设为管理员
+	global.Cli.AddBotsToKnowledgeSpaceAsAdmin(s.SpaceId, botIds, UserAccessToken)
+
+	//复制节点（生成原始文档）
+	//需配置模板文档所在路径
+	nodes := global.Cli.GetAllNodes(T.SpaceId, T.ParentNodeToken)
+	for _, value := range nodes {
+		global.Cli.CopyNode(T.SpaceId, value.NodeToken, s.SpaceId, "", "")
+	}
+
+	//插入项目信息至数据库
+	/*
+		projectInfo := Project{
+			ProjectId:        0,
+			ProjectName:      pjt.ProjectName,
+			ProjectType:      setProjectType(pjt.ProjectProperties),
+			ProjectLeaderIds: getProjectLeaderIds(pjt.ProjectManager[0]),
+			//GroupId:          GetNewGroupId(),
+			GanttDocUrl:   "",
+			PrdDocUrl:     "",
+			TechDocUrl:    "",
+			FeishuRepoUrl: "",
+			ProjectStatus: "",
+		}
+		var projectInfoList []Project
+		projectInfoList = append(projectInfoList, projectInfo)
+		InsertProjectRecords(projectInfoList)
+	*/
 
 	result = true
+	//清除变量，为下一次立项准备
+	UserAccessToken = ""
+	p := reflect.ValueOf(MyProject).Elem()
+	p.Set(reflect.Zero(p.Type()))
 
 	return result
 }
