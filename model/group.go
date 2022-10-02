@@ -25,7 +25,7 @@ type Group struct {
 	GroupSettingsJSON string `bson:"group_settings_json"`
 }
 
-func getGroupInfo(v *Group, userIdType feishuapi.UserIdType) {
+func getGroupInfo(v *Group, userIdType feishuapi.UserIdType, userAccessToken string) {
 	query := make(map[string]string)
 	query["user_id_type"] = string(userIdType)
 
@@ -45,7 +45,9 @@ func getGroupInfo(v *Group, userIdType feishuapi.UserIdType) {
 	body["manager_ids"] = []string{v.GroupOwner}
 	memquery := make(map[string]string)
 	memquery["member_id_type"] = string(userIdType)
-	resp = global.Cli.Request("post", "open-apis/im/v1/chats/"+v.FeishuChatId+"/managers/add_managers", memquery, nil, body)
+	header := make(map[string]string)
+	header["Authorization"] = userAccessToken
+	resp = global.Cli.Request("post", "open-apis/im/v1/chats/"+v.FeishuChatId+"/managers/add_managers", memquery, header, body)
 
 	managers := resp["chat_managers"].([]string)
 	v.GroupAdmins = append(v.GroupAdmins, managers...)
@@ -54,11 +56,11 @@ func getGroupInfo(v *Group, userIdType feishuapi.UserIdType) {
 	v.GroupAdmins = append(v.GroupAdmins, managers...)
 }
 
-func InsertGroupRecords(v []Group, userIdType feishuapi.UserIdType) {
+func InsertGroupRecords(v []Group, userIdType feishuapi.UserIdType, userAccessToken string) {
 	var l []interface{}
 
 	for _, value := range v {
-		getGroupInfo(&value, userIdType)
+		getGroupInfo(&value, userIdType, userAccessToken)
 		l = append(l, value)
 	}
 
