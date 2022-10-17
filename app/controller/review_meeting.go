@@ -1,55 +1,56 @@
 package timer
 
 import (
-	"xlab-feishu-robot/pkg/global"
-	"github.com/sirupsen/logrus"
-	"github.com/robfig/cron/v3"
 	"time"
+	"xlab-feishu-robot/global"
+
+	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
 )
 
 type TableInfo struct {
 	AppToken string
-	TableID string `json:"table_id"`
-	Revision int `json:"revision"`
-	Name string `json:"name"`
+	TableID  string `json:"table_id"`
+	Revision int    `json:"revision"`
+	Name     string `json:"name"`
 }
 
-func NewTableInfoWithToken(apptoken string, data map[string]interface{}) *TableInfo{
+func NewTableInfoWithToken(apptoken string, data map[string]interface{}) *TableInfo {
 	return &TableInfo{
 		AppToken: apptoken,
-		TableID: data["table_id"].(string),
+		TableID:  data["table_id"].(string),
 		Revision: int(data["revision"].(float64)),
-		Name: data["name"].(string),
+		Name:     data["name"].(string),
 	}
 }
 
 type RecordInfo struct {
 	AppToken string
-	TableID string `json:"table_id"`
+	TableID  string `json:"table_id"`
 	RecordID string `json:"record_id"`
-	Fields map[string]interface{}
+	Fields   map[string]interface{}
 }
 
-func NewRecordInfoWithTokenID(apptoken string, table_id string, data map[string]interface{}) *RecordInfo{
+func NewRecordInfoWithTokenID(apptoken string, table_id string, data map[string]interface{}) *RecordInfo {
 	return &RecordInfo{
 		AppToken: apptoken,
-		TableID: table_id,
+		TableID:  table_id,
 		RecordID: data["record_id"].(string),
-		Fields: data["fields"].(map[string]interface{}),
+		Fields:   data["fields"].(map[string]interface{}),
 	}
 }
 
 type FieldInfo struct {
-	Status string
+	Status    string
 	StartTime float64
-	EndTime float64
+	EndTime   float64
 }
 
-func NewFieldInfo(data map[string]interface{}) *FieldInfo{
+func NewFieldInfo(data map[string]interface{}) *FieldInfo {
 	return &FieldInfo{
-		Status: data["任务状态"].(string),
+		Status:    data["任务状态"].(string),
 		StartTime: data["开始日期"].(float64),
-		EndTime: data["截止日期"].(float64),
+		EndTime:   data["截止日期"].(float64),
 	}
 }
 
@@ -82,10 +83,10 @@ func CheckReviewMeeting(chatID string) {
 
 	//get all the tables
 	var tableInfoList []TableInfo
-	for _,bitable := range allBitables {
+	for _, bitable := range allBitables {
 		AppToken := bitable.AppToken
 		method := "GET"
-		path := "open-apis/bitable/v1/apps/" + AppToken +"/tables"
+		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables"
 		query := map[string]string{}
 		header := map[string]string{}
 		body := map[string]string{}
@@ -100,10 +101,10 @@ func CheckReviewMeeting(chatID string) {
 
 	//get all the records
 	var recordInfoList []RecordInfo
-	for _,table := range tableInfoList {
+	for _, table := range tableInfoList {
 		AppToken := table.AppToken
 		method := "GET"
-		path := "open-apis/bitable/v1/apps/" + AppToken +"/tables/" + table.TableID + "/records"
+		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables/" + table.TableID + "/records"
 		query := map[string]string{}
 		header := map[string]string{}
 		body := map[string]string{}
@@ -120,7 +121,7 @@ func CheckReviewMeeting(chatID string) {
 	var reviewMeeting []FieldInfo
 	for _, record := range recordInfoList {
 		if name, exist := record.Fields["任务名"]; exist {
-			if name == "复盘会"{
+			if name == "复盘会" {
 				reviewMeeting = append(reviewMeeting, *NewFieldInfo(record.Fields))
 				break
 			}
@@ -131,20 +132,20 @@ func CheckReviewMeeting(chatID string) {
 
 	//check if the review meeting is tomorrow
 	var nearby bool
-	now := float64(time.Now().Unix()*1000)
-	for _, meeting := range reviewMeeting{
+	now := float64(time.Now().Unix() * 1000)
+	for _, meeting := range reviewMeeting {
 		diff := meeting.EndTime - now
 		if diff < 86400000 && diff > 0 {
 			nearby = true
 		}
 	}
 	if nearby {
-		global.Cli.Send("chat_id",chatID,"text","review meeting is nearby")
+		global.Cli.Send("chat_id", chatID, "text", "review meeting is nearby")
 	}
 }
 
 // chatID is the groupID
-func StartReviewMeetingTimer(chatID string){
+func StartReviewMeetingTimer(chatID string) {
 	logrus.Info("start review meeting timer")
 	c := cron.New()
 	// every day at 18:00

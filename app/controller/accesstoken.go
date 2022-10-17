@@ -1,8 +1,11 @@
 package controller
 
+//TODO move to FeishuAPI
+
 import (
+	"xlab-feishu-robot/global"
+
 	"github.com/gin-gonic/gin"
-	"xlab-feishu-robot/pkg/global"
 )
 
 var (

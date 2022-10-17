@@ -2,7 +2,7 @@ package model
 
 import (
 	"context"
-	"xlab-feishu-robot/pkg/global"
+	"xlab-feishu-robot/global"
 
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"

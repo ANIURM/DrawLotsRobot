@@ -3,10 +3,11 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"reflect"
 	"strings"
-	global "xlab-feishu-robot/pkg/global"
+	global "xlab-feishu-robot/global"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
