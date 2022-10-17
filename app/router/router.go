@@ -11,6 +11,8 @@ func Register(r *gin.Engine) {
 	// register your controllers here
 	// example
 	r.POST("/api/example", controller.Example)
+	r.GET("/api/getUserAccessToken", controller.GetUserAccessToken)
+	r.POST("/api/project", controller.InitProject)
 
 	// DO NOT CHANGE LINES BELOW
 	// register dispatcher
