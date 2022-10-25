@@ -1,10 +1,11 @@
 package config
 
 import (
+	"xlab-feishu-robot/app/controller"
+
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"xlab-feishu-robot/app/controller"
 )
 
 type Config struct {

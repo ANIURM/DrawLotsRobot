@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"xlab-feishu-robot/config"
+	"xlab-feishu-robot/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -31,7 +31,7 @@ func Dispatcher(c *gin.Context) {
 
 	// decrypt data if ENCRYPT is on
 	var requestStr string
-	if encryptKey := config.C.Feishu.EncryptKey; encryptKey != "" {
+	if encryptKey := global.Cli.Conf.EncryptKey; encryptKey != "" {
 		rawBodyJson := make(map[string]any)
 		json.Unmarshal(rawBody, &rawBodyJson)
 		rawRequestStr, _ := rawBodyJson["encrypt"].(string)
@@ -80,14 +80,14 @@ func Dispatcher(c *gin.Context) {
 func validateRequest(c *gin.Context, token string, rawBodyStr string) bool {
 	// check the token and hash in event request header
 
-	if token != config.C.Feishu.VerificationToken {
+	if token != global.Cli.Conf.VerificationToken {
 		return false
 	}
 	timestamp := c.Request.Header.Get("X-Lark-Request-Timestamp")
 	nonce := c.Request.Header.Get("X-Lark-Request-Nonce")
 	signature := c.Request.Header.Get("X-Lark-Signature")
 
-	return signature == calculateSignature(timestamp, nonce, config.C.Feishu.EncryptKey, rawBodyStr)
+	return signature == calculateSignature(timestamp, nonce, global.Cli.Conf.EncryptKey, rawBodyStr)
 }
 
 func eventRepeatDetect(eventId string) bool {

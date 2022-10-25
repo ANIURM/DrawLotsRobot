@@ -1,4 +1,4 @@
-package receiveMessage
+package chat
 
 import (
 	"xlab-feishu-robot/global"
@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	groupMessageRegister(groupHelpMenu, "help")
+	GroupMessageRegister(groupHelpMenu, "help")
 }
 
 func groupHelpMenu(messageevent *MessageEvent) {

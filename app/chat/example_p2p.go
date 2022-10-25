@@ -1,4 +1,4 @@
-package receiveMessage
+package chat
 
 import (
 	"xlab-feishu-robot/global"

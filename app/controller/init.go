@@ -1,11 +1,12 @@
 package controller
 
-func Init()
+import (
+	"xlab-feishu-robot/app/chat"
+	"xlab-feishu-robot/app/dispatcher"
+)
 
-func initTimer()
-
-func initEvent() {
+func InitEvent() {
 	// register your handlers here
 	// example
-	dispatcher.RegisterListener(receiveMessage.Receive, "im.message.receive_v1")
+	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
 }

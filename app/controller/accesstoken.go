@@ -1,7 +1,5 @@
 package controller
 
-//TODO move to FeishuAPI
-
 import (
 	"xlab-feishu-robot/global"
 

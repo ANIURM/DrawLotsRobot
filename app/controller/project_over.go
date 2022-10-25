@@ -1,9 +1,10 @@
-package receiveMessage
+package controller
 
 // this is a simple test file
 
 import (
 	"time"
+	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 
 	"github.com/YasyaKarasu/feishuapi"
@@ -11,7 +12,7 @@ import (
 )
 
 func init() {
-	groupMessageRegister(projectOver, "结项")
+	chat.GroupMessageRegister(projectOver, "结项")
 }
 
 // type NodeInfo struct {
@@ -24,7 +25,7 @@ func init() {
 // }
 
 // suppose we have already know the space id
-func projectOver(messageevent *MessageEvent) {
+func projectOver(messageevent *chat.MessageEvent) {
 	logrus.Debug("project over")
 
 	//TODO: delete the following sentence if space id is added correctly

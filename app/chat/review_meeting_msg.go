@@ -1,4 +1,4 @@
-package receiveMessage
+package chat
 
 import (
 	"time"
@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	groupMessageRegister(ReviewMeetingTimer, "复盘")
+	GroupMessageRegister(ReviewMeetingTimer, "复盘")
 }
 
 type TableInfo struct {
