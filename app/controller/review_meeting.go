@@ -10,7 +10,10 @@ import (
 
 func ReviewMeetingMessage(messageevent *chat.MessageEvent){
 	chatID := messageevent.Message.Chat_id
-	CheckReviewMeeting(chatID)
+	haveReviewMeeting := CheckReviewMeeting(chatID)
+	if(haveReviewMeeting == 0){
+		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "近期没有复盘会，安心啦")
+	}
 }
 
 type TableInfo struct {
@@ -59,8 +62,7 @@ func NewFieldInfo(data map[string]interface{}) *FieldInfo {
 	}
 }
 
-func CheckReviewMeeting(chatID string) {
-	logrus.Info("check review meeting")
+func CheckReviewMeeting(chatID string) int{
 
 	//TODO:delete this
 	global.Rob.GroupSpace[chatID] = "7145117180906979330"
@@ -146,6 +148,9 @@ func CheckReviewMeeting(chatID string) {
 	}
 	if nearby {
 		global.Cli.Send("chat_id", chatID, "text", "review meeting is nearby")
+		return 1
+	}else{
+		return 0
 	}
 }
 

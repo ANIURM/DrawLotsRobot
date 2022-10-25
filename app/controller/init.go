@@ -16,3 +16,7 @@ func InitMessageBind() {
 	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
 	chat.GroupMessageRegister(ProjectOver, "结项")
 }
+
+func StartGroupTimer(chatID string){
+	StartReviewMeetingTimer(chatID)
+}
