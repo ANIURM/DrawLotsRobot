@@ -7,6 +7,12 @@ import (
 
 func InitEvent() {
 	// register your handlers here
-	// example
 	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
+	InitMessageBind()
+}
+
+func InitMessageBind() {
+	// register your handlers here
+	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
+	chat.GroupMessageRegister(ProjectOver, "结项")
 }

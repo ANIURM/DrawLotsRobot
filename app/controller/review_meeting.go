@@ -3,10 +3,15 @@ package controller
 import (
 	"time"
 	"xlab-feishu-robot/global"
-
+	"xlab-feishu-robot/app/chat"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )
+
+func ReviewMeetingMessage(messageevent *chat.MessageEvent){
+	chatID := messageevent.Message.Chat_id
+	CheckReviewMeeting(chatID)
+}
 
 type TableInfo struct {
 	AppToken string

@@ -9,12 +9,11 @@ import (
 
 func Init(r *gin.Engine) {
 	controller.InitEvent()
+	Register(r)
 }
 
 func Register(r *gin.Engine) {
 	// register your controllers here
-	// example
-	//r.POST("/api/example", controller.Example)
 	r.GET("/api/getUserAccessToken", controller.GetUserAccessToken)
 	r.POST("/api/project", controller.InitProject)
 

@@ -11,10 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func init() {
-	chat.GroupMessageRegister(projectOver, "结项")
-}
-
 // type NodeInfo struct {
 // 	NodeToken       string
 // 	ObjToken        string
@@ -25,7 +21,7 @@ func init() {
 // }
 
 // suppose we have already know the space id
-func projectOver(messageevent *chat.MessageEvent) {
+func ProjectOver(messageevent *chat.MessageEvent) {
 	logrus.Debug("project over")
 
 	//TODO: delete the following sentence if space id is added correctly
