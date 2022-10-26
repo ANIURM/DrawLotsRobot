@@ -6,6 +6,7 @@ import (
 	"xlab-feishu-robot/app/chat"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
+	"github.com/YasyaKarasu/feishuapi"
 )
 
 func ReviewMeetingMessage(messageevent *chat.MessageEvent){
@@ -36,6 +37,7 @@ type RecordInfo struct {
 	AppToken string
 	TableID  string `json:"table_id"`
 	RecordID string `json:"record_id"`
+	Last_modified_time float64 `json:"last_modified_time"`
 	Fields   map[string]interface{}
 }
 
@@ -44,6 +46,7 @@ func NewRecordInfoWithTokenID(apptoken string, table_id string, data map[string]
 		AppToken: apptoken,
 		TableID:  table_id,
 		RecordID: data["record_id"].(string),
+		Last_modified_time: data["last_modified_time"].(float64),
 		Fields:   data["fields"].(map[string]interface{}),
 	}
 }
@@ -64,64 +67,16 @@ func NewFieldInfo(data map[string]interface{}) *FieldInfo {
 
 func CheckReviewMeeting(chatID string) int{
 
-	//TODO:delete this
-	global.Rob.GroupSpace[chatID] = "7145117180906979330"
-
 	space_id := global.Rob.GroupSpace[chatID]
-	allNode := global.Cli.GetAllNodes(space_id)
-	topFile := "排期甘特图"
-	secFile := "任务进度管理"
-	var fileToken string
-
-	for _, node := range allNode {
-		if node.Title == topFile {
-			allSubNode := global.Cli.GetAllNodes(space_id, node.NodeToken)
-			for _, subNode := range allSubNode {
-				if subNode.Title == secFile {
-					fileToken = subNode.ObjToken
-					break
-				}
-			}
-			break
-		}
-	}
-
+	_,fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
 
-	//get all the tables
 	var tableInfoList []TableInfo
-	for _, bitable := range allBitables {
-		AppToken := bitable.AppToken
-		method := "GET"
-		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables"
-		query := map[string]string{}
-		header := map[string]string{}
-		body := map[string]string{}
-		resp := global.Cli.Request(method, path, query, header, body)
-		tablesRaw := resp["items"].([]interface{})
-		for _, tableRaw := range tablesRaw {
-			tableInfoList = append(tableInfoList, *NewTableInfoWithToken(AppToken, tableRaw.(map[string]interface{})))
-		}
-	}
-
+	tableInfoList = GetAllTableInfo(allBitables)
 	logrus.Debug("[review meeting] table info list: ", tableInfoList)
 
-	//get all the records
 	var recordInfoList []RecordInfo
-	for _, table := range tableInfoList {
-		AppToken := table.AppToken
-		method := "GET"
-		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables/" + table.TableID + "/records"
-		query := map[string]string{}
-		header := map[string]string{}
-		body := map[string]string{}
-		resp := global.Cli.Request(method, path, query, header, body)
-		recordsRaw := resp["items"].([]interface{})
-		for _, recordRaw := range recordsRaw {
-			recordInfoList = append(recordInfoList, *NewRecordInfoWithTokenID(AppToken, table.TableID, recordRaw.(map[string]interface{})))
-		}
-	}
-
+	recordInfoList = GetAllRecordInfo(tableInfoList)
 	logrus.Debug("[review meeting] record info list: ", recordInfoList)
 
 	//get the "复盘会" records
@@ -154,11 +109,48 @@ func CheckReviewMeeting(chatID string) int{
 	}
 }
 
+func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []TableInfo{
+	var tableInfoList []TableInfo
+	for _, bitable := range bitableInfoList {
+		AppToken := bitable.AppToken
+		method := "GET"
+		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables"
+		query := map[string]string{}
+		header := map[string]string{}
+		body := map[string]string{}
+		resp := global.Cli.Request(method, path, query, header, body)
+		tablesRaw := resp["items"].([]interface{})
+		for _, tableRaw := range tablesRaw {
+			tableInfoList = append(tableInfoList, *NewTableInfoWithToken(AppToken, tableRaw.(map[string]interface{})))
+		}
+	}
+	return tableInfoList
+}
+
+func GetAllRecordInfo(tableInfoList []TableInfo) []RecordInfo{
+	var recordInfoList []RecordInfo
+	for _, table := range tableInfoList {
+		AppToken := table.AppToken
+		method := "GET"
+		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables/" + table.TableID + "/records"
+		query := map[string]string{} 
+		query["automatic_fields"] = "true"
+		header := map[string]string{}
+		body := map[string]string{}
+		resp := global.Cli.Request(method, path, query, header, body)
+		recordsRaw := resp["items"].([]interface{})
+		for _, recordRaw := range recordsRaw {
+			recordInfoList = append(recordInfoList, *NewRecordInfoWithTokenID(AppToken, table.TableID, recordRaw.(map[string]interface{})))
+		}
+	}
+	return recordInfoList
+}
+
 // chatID is the groupID
 func StartReviewMeetingTimer(chatID string) {
 	logrus.Info("start review meeting timer")
 	c := cron.New()
-	// every day at 18:00
+	// every two days
 	c.AddFunc("0 0 18 * * *", func() {
 		CheckReviewMeeting(chatID)
 	})

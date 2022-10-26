@@ -31,7 +31,7 @@ func p2pTextMessage(messageevent *MessageEvent) {
 	}
 }
 
-func p2pMessageRegister(f messageHandler, s string) {
+func P2pMessageRegister(f messageHandler, s string) {
 
 	if _, isEventExist := p2pMessageMap[s]; isEventExist {
 		logrus.Warning("Double declaration of group message handler: ", s)

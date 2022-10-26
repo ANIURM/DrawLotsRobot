@@ -11,24 +11,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// type NodeInfo struct {
-// 	NodeToken       string
-// 	ObjToken        string
-// 	ObjType         string
-// 	ParentNodeToken string
-// 	Title           string
-//  HasChild 		bool
-// }
-
 // suppose we have already know the space id
 func ProjectOver(messageevent *chat.MessageEvent) {
 	logrus.Debug("project over")
 
-	//TODO: delete the following sentence if space id is added correctly
-	global.Rob.GroupSpace[messageevent.Message.Chat_id] = "7145117180906979330"
 	space_id := global.Rob.GroupSpace[messageevent.Message.Chat_id]
-
-	//TODO: permission
 	allNode := global.Cli.GetAllNodes(space_id)
 	requirement := map[string]int{"项目介绍": 100, "产品需求文档": 200, "产品测试记录": 200, "用户手册": 300}
 	tooShort := []string{}
