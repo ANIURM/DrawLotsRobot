@@ -147,12 +147,10 @@ func GetAllRecordInfo(tableInfoList []TableInfo) []RecordInfo{
 }
 
 // chatID is the groupID
-func StartReviewMeetingTimer(chatID string) {
-	logrus.Info("start review meeting timer")
-	c := cron.New()
-	// every two days
+func StartReviewMeetingTimer(chatID string, c *cron.Cron){
+	logrus.Info("[timer] add review meeting timer")
+
 	c.AddFunc("0 0 18 * * *", func() {
 		CheckReviewMeeting(chatID)
 	})
-	c.Start()
 }

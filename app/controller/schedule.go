@@ -69,12 +69,12 @@ func CheckRecordInfoModified(newRecordInfoList []RecordInfo, oldRecordInfoList [
 	return false
 }
 
-func StartProjectScheduleTimer(groupID string){
-	logrus.Info("start project schedule timer")
-	c := cron.New()
+func StartProjectScheduleTimer(groupID string, c *cron.Cron){
+	logrus.Info("[timer] add project schedule timer")
+
 	// every two days
 	c.AddFunc("0 0 0 */2 * *", func() {
 		checkScheduleUpdated(groupID)
 	})
-	c.Start()
+
 }
