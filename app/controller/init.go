@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/app/dispatcher"
 	"xlab-feishu-robot/global"
-	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
 )
 
 func InitEvent() {
@@ -15,10 +15,12 @@ func InitEvent() {
 }
 
 func InitMessageBind() {
+	chat.GroupMessageRegister(ProjectCreat, "立项")
 	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
 	chat.GroupMessageRegister(ProjectOver, "结项")
 	chat.GroupMessageRegister(ProjectScheduleReminder, "进度更新状态")
 	chat.GroupMessageRegister(GetProjectSchedule, "进度获取")
+	chat.GroupMessageRegister(MeetingForm, "会议问卷")
 	chat.GroupMessageRegister(GroupHelpMenu, "help")
 	chat.P2pMessageRegister(p2pHelpMenu, "help")
 }
@@ -28,7 +30,7 @@ func InitDebugSpace() {
 	global.Rob.GroupOwner["oc_01b58f911445bb053d2d34f2a5546243"] = "65631d22"
 }
 
-func StartGroupTimer(chatID string){
+func StartGroupTimer(chatID string) {
 	logrus.Info("[timer] start timer")
 
 	c := cron.New(cron.WithSeconds())
@@ -41,15 +43,15 @@ func StartGroupTimer(chatID string){
 	logrus.Info("[timer] start group timer success")
 }
 
-func EndGroupTimer(chatID string){
+func EndGroupTimer(chatID string) {
 	global.Timer.GTimers[chatID].Stop()
 	delete(global.Timer.GTimers, chatID)
 }
 
-func startTestTimer(chatID string, c *cron.Cron){
+func startTestTimer(chatID string, c *cron.Cron) {
 	logrus.Info("[timer] add TestTimer")
 
-	c.AddFunc("* * * * * *", func(){
+	c.AddFunc("* * * * * *", func() {
 		logrus.Info("[timer] TestTimer")
 		global.Cli.Send("chat_id", chatID, "text", "test")
 	})

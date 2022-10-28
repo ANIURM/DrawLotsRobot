@@ -16,5 +16,5 @@ func GetUserAccessToken(c *gin.Context) {
 		panic("The param 'code' was not obtained")
 	}
 	UserAccessToken = global.Cli.GetUserAccessToken(code).Access_token
-	//c.String(200, UserAccessToken)
+	c.String(200, "鉴权成功，您现在可以返回，继续您的操作")
 }

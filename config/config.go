@@ -22,12 +22,20 @@ type Config struct {
 		ExampleField3 int
 	}
 	FeishuProjectFormPath struct {
-		AppToken string
-		TableId  string
+		AppTokenForProjectCreat string
+		TableIdForProjectCreat  string
+		AppTokenForMeeting      string
+		TableIdForMeeting       string
 	}
 	TemplateDocs struct {
 		SpaceId         string
 		ParentNodeToken string
+	}
+	UrlStrings struct {
+		UrlHead                  string
+		UrlForProjectCreate      string
+		UrlForGetUserAccessToken string
+		UrlForMeeting            string
 	}
 }
 
@@ -52,4 +60,5 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	cli.Conf = C.Feishu
 	controller.P = C.FeishuProjectFormPath
 	controller.T = C.TemplateDocs
+	controller.Url = C.UrlStrings
 }
