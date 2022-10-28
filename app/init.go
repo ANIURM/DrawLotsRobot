@@ -1,13 +1,24 @@
 package app
 
 import (
-	eventHandler "xlab-feishu-robot/app/event_handler"
-	"xlab-feishu-robot/app/router"
+	"xlab-feishu-robot/app/controller"
+	"xlab-feishu-robot/app/dispatcher"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Init(r *gin.Engine) {
-	eventHandler.Init()
-	router.Register(r)
+	controller.InitEvent()
+	Register(r)
+}
+
+func Register(r *gin.Engine) {
+	// register your controllers here
+	r.GET("/api/getUserAccessToken", controller.GetUserAccessToken)
+	r.POST("/api/project", controller.InitProject)
+	r.POST("api/meeting", controller.ReadMeetingForm)
+
+	// DO NOT CHANGE LINES BELOW
+	// register dispatcher
+	r.POST("/feiShu/Event", dispatcher.Dispatcher)
 }

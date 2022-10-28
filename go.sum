@@ -44,10 +44,8 @@ github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tN
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/YasyaKarasu/feishuapi v1.1.10 h1:euY1qJS9+rmIYLg278Y9NCufKHmQYl1wIwIsAj0o8g8=
-github.com/YasyaKarasu/feishuapi v1.1.10/go.mod h1:sn5gDUIBia/nJ8youGp6wuz5nwAl0fbY0+y99VnUl7Y=
-github.com/YasyaKarasu/feishuapi v1.1.13 h1:oS6E+7/utbP1ERRGQGIWc6MoWxWxCfucdTt5hdeVunM=
-github.com/YasyaKarasu/feishuapi v1.1.13/go.mod h1:sn5gDUIBia/nJ8youGp6wuz5nwAl0fbY0+y99VnUl7Y=
+github.com/YasyaKarasu/feishuapi v1.1.14 h1:8/sm8lAZi9Uw1j8jukAxxXAfsHiUmnl+7Bd38wxoju8=
+github.com/YasyaKarasu/feishuapi v1.1.14/go.mod h1:sn5gDUIBia/nJ8youGp6wuz5nwAl0fbY0+y99VnUl7Y=
 github.com/agiledragon/gomonkey/v2 v2.3.1/go.mod h1:ap1AmDzcVOAz1YpeJ3TCzIgstoaWLA6jbbgxfB4w2iY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=

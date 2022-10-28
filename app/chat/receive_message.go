@@ -1,7 +1,8 @@
-package receiveMessage
+package chat
 
 import (
 	"encoding/json"
+
 	"github.com/sirupsen/logrus"
 )
 
