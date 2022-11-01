@@ -2,37 +2,51 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/sirupsen/logrus"
 )
 
+type Config struct {
+	Host     string
+	Port     string
+	User 		string
+	Password string
+	AuthSource   string
+}
+
+var Conf Config
 var client *mongo.Client
-var employee, group, privilege, project *mongo.Collection
+var employee, group, privilege, project,robot_state *mongo.Collection
 
-func Init() {
+func InitDatabase() {
+	Connect()
+
+	employee = client.Database("xlabFeishuRobot").Collection("employee")
+	group = client.Database("xlabFeishuRobot").Collection("group")
+	privilege = client.Database("xlabFeishuRobot").Collection("privilege")
+	project = client.Database("xlabFeishuRobot").Collection("project")
+	robot_state = client.Database("xlabFeishuRobot").Collection("robot_state")
+
+}
+
+func Connect(){
 	var err error
-
-	clientOptions := options.Client().ApplyURI("mongodb://test:123456@101.34.188.18:27017/test")
-
-	client, err = mongo.Connect(context.TODO(), clientOptions)
-
+	credential := options.Credential{
+		AuthSource: Conf.AuthSource,
+		Username:	Conf.User,
+		Password:  	Conf.Password,
+	}
+	clientOpts := options.Client().ApplyURI("mongodb://"+Conf.Host+":"+Conf.Port).SetAuth(credential)
+	client, err = mongo.Connect(context.TODO(), clientOpts)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	err = client.Ping(context.TODO(), nil)
-
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Connected to MongoDB!")
-
-	employee = client.Database("test").Collection("employee")
-	group = client.Database("test").Collection("group")
-	privilege = client.Database("test").Collection("privilege")
-	project = client.Database("test").Collection("project")
+	logrus.Info("Connected to MongoDB!")
 }

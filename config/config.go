@@ -2,6 +2,7 @@ package config
 
 import (
 	"xlab-feishu-robot/app/controller"
+	"xlab-feishu-robot/model"
 
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
@@ -37,6 +38,13 @@ type Config struct {
 		UrlForGetUserAccessToken string
 		UrlForMeeting            string
 	}
+	Database struct {
+		Host     string
+		Port     string
+		User 		string
+		Password string
+		AuthSource   string
+	}
 }
 
 var C Config
@@ -61,4 +69,8 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	controller.P = C.FeishuProjectFormPath
 	controller.T = C.TemplateDocs
 	controller.Url = C.UrlStrings
+}
+
+func SetupDatabase(){
+	model.Conf = C.Database
 }

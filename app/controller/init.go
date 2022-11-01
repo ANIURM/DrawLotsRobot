@@ -6,12 +6,15 @@ import (
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/app/dispatcher"
 	"xlab-feishu-robot/global"
+	"xlab-feishu-robot/global/rob"
+	"xlab-feishu-robot/model"
 )
 
 func InitEvent() {
 	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
 	InitMessageBind()
 	InitDebugSpace()
+	// Debug()
 }
 
 func InitMessageBind() {
@@ -26,8 +29,8 @@ func InitMessageBind() {
 }
 
 func InitDebugSpace() {
-	global.Rob.GroupSpace["oc_01b58f911445bb053d2d34f2a5546243"] = "7145117180906979330"
-	global.Rob.GroupOwner["oc_01b58f911445bb053d2d34f2a5546243"] = "65631d22"
+	rob.Rob.SetGroupSpace("oc_01b58f911445bb053d2d34f2a5546243", "7145117180906979330")
+	rob.Rob.SetGroupOwner("oc_01b58f911445bb053d2d34f2a5546243", "65631d22")
 }
 
 func StartGroupTimer(chatID string) {
@@ -55,4 +58,22 @@ func startTestTimer(chatID string, c *cron.Cron) {
 		logrus.Info("[timer] TestTimer")
 		global.Cli.Send("chat_id", chatID, "text", "test")
 	})
+}
+
+func Debug(){
+	model.DeleteRobotStateRecords("testGroup")
+	rob.Rob.SetGroupSpace("testGroup","testSpace")
+	rob.Rob.SetGroupOwner("testGroup", "testUser")
+	space := rob.Rob.GetGroupSpace("testGroup")
+	user := rob.Rob.GetGroupOwner("testGroup")
+	if space == "testSpace" && user == "testUser" {
+		logrus.Info("[debug] insert test success")
+	}
+	rob.Rob.SetGroupSpace("testGroup","testSpace222")
+	rob.Rob.SetGroupOwner("testGroup", "testUser222")
+	space = rob.Rob.GetGroupSpace("testGroup")
+	user = rob.Rob.GetGroupOwner("testGroup")
+	if space == "testSpace222" && user == "testUser222" {
+		logrus.Info("[debug] update test success")
+	}
 }

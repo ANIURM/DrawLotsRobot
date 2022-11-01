@@ -7,6 +7,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/YasyaKarasu/feishuapi"
+	"xlab-feishu-robot/global/rob"
 )
 
 func ReviewMeetingMessage(messageevent *chat.MessageEvent){
@@ -67,7 +68,7 @@ func NewFieldInfo(data map[string]interface{}) *FieldInfo {
 
 func CheckReviewMeeting(chatID string) int{
 
-	space_id := global.Rob.GroupSpace[chatID]
+	space_id := rob.Rob.GetGroupSpace(chatID)
 	_,fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
 
