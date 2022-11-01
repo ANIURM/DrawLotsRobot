@@ -17,4 +17,6 @@ COPY config.yaml /etc/xlab-project-robot/config.yaml
 
 COPY --from=builder /projrob /projrob
 
+RUN mkdir -p /log
+
 ENTRYPOINT ["/projrob"]
