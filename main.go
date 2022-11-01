@@ -6,6 +6,8 @@ import (
 	"xlab-feishu-robot/config"
 	"xlab-feishu-robot/docs"
 	"xlab-feishu-robot/global"
+	"xlab-feishu-robot/global/rob"
+	"xlab-feishu-robot/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -27,6 +29,13 @@ func main() {
 	// feishu api client
 	config.SetupFeishuApiClient(&global.Cli)
 	global.Cli.StartTokenTimer()
+
+	// database setup
+	config.SetupDatabase()
+	model.InitDatabase()
+
+	// robot state init
+	rob.InitRobState()
 
 	// robot server
 	r := gin.Default()

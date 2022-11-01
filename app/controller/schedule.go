@@ -5,6 +5,7 @@ import(
 	"xlab-feishu-robot/global"
 	"github.com/sirupsen/logrus"
 	"github.com/robfig/cron/v3"
+	"xlab-feishu-robot/global/rob"
 )
 
 var oldRecordInfo []RecordInfo
@@ -15,7 +16,7 @@ func ProjectScheduleReminder(messageevent *chat.MessageEvent){
 }
 
 func checkScheduleUpdated(groupID string){
-	space_id := global.Rob.GroupSpace[groupID]
+	space_id := rob.Rob.GetGroupSpace(groupID)
 	_,fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
 
@@ -27,7 +28,7 @@ func checkScheduleUpdated(groupID string){
 	recordInfoList = GetAllRecordInfo(tableInfoList)
 	logrus.Debug("[shchedule] recordInfoList: ", recordInfoList)
 
-	user_id := global.Rob.GroupOwner[groupID]
+	user_id := rob.Rob.GetGroupOwner(groupID)
 	modified := CheckRecordInfoModified(recordInfoList, oldRecordInfo)
 	if(modified){
 		global.Cli.Send("user_id", user_id, "text", "排期甘特图有更新，请及时查看")

@@ -8,6 +8,7 @@ import (
 
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
+	"xlab-feishu-robot/global/rob"
 )
 
 func initUpdateMember() {
@@ -15,8 +16,8 @@ func initUpdateMember() {
 }
 
 func UpdateMember(msgEvent *chat.MessageEvent) {
-	//space_id := global.Rob.GroupSpace[msgEvent.Message.Chat_id]
-	space_id := "7141190444620513282"
+	space_id := rob.Rob.GetGroupSpace(msgEvent.Message.Chat_id)
+	//space_id := "7141190444620513282"
 
 	allNode := global.Cli.GetAllNodes(space_id)
 	for _, node := range allNode {

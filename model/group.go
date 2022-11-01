@@ -97,11 +97,26 @@ func QueryGroupByName(name string) (*[]Group, error) {
 	return &groups, nil
 }
 
-func UpdateGroupSettingsJSON(id primitive.ObjectID, JSON string) error {
+func ReplaceGroupSettingsJSON(id primitive.ObjectID, JSON string) error {
 	filter := bson.D{{Key: "_id", Value: id}}
 	replacement := bson.D{{Key: "group_settings_json", Value: JSON}}
 
 	_, err := group.ReplaceOne(context.TODO(), filter, replacement)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"id":                id,
+			"GroupSettingsJSON": JSON,
+		}).Error(err)
+		return err
+	}
+	return nil
+}
+
+func UpdateGroupSettingsJson(id primitive.ObjectID, JSON string) error {
+	filter := bson.D{{Key: "_id", Value: id}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "group_settings_json", Value: JSON}}}}
+
+	_, err := group.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"id":                id,

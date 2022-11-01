@@ -10,6 +10,7 @@ import (
 	global "xlab-feishu-robot/global"
 
 	"github.com/gin-gonic/gin"
+	"xlab-feishu-robot/global/rob"
 )
 
 var (
@@ -217,8 +218,8 @@ func CreateProject() bool {
 		InsertProjectRecords(projectInfoList)
 	*/
 	//添加映射
-	global.Rob.GroupSpace[v.ChatId] = s.SpaceId
-	global.Rob.GroupOwner[v.ChatId] = manager
+	rob.Rob.SetGroupSpace(v.ChatId, s.SpaceId)
+	rob.Rob.SetGroupOwner(v.ChatId, manager)
 
 	//启动Timer
 	StartGroupTimer(v.ChatId)
