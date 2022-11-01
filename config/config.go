@@ -44,6 +44,7 @@ var C Config
 func ReadConfig() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath("./")
+	viper.AddConfigPath("/etc/xlab-project-robot")
 
 	if err := viper.ReadInConfig(); err != nil {
 		logrus.Panic(err)
