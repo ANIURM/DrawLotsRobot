@@ -28,6 +28,10 @@ func (r *robotState) GetGroupOwner(groupID string) string {
 	return r.groupOwner[groupID]
 }
 
+func (r *robotState) GetGroupSpaceMap() map[string]string {
+	return r.groupSpace
+}
+
 var Rob = robotState{
 	groupSpace: make(map[string]string),
 	groupOwner: make(map[string]string),

@@ -14,6 +14,7 @@ func InitEvent() {
 	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
 	InitMessageBind()
 	InitDebugSpace()
+	recoverTimer()
 	// Debug()
 }
 
@@ -34,7 +35,6 @@ func InitDebugSpace() {
 }
 
 func StartGroupTimer(chatID string) {
-	logrus.Info("[timer] start timer")
 
 	c := cron.New(cron.WithSeconds())
 	global.Timer.GTimers[chatID] = c
@@ -43,7 +43,7 @@ func StartGroupTimer(chatID string) {
 	StartProjectScheduleTimer(chatID, c)
 
 	c.Start()
-	logrus.Info("[timer] start group timer success")
+	logrus.Info("[timer] " ,chatID, " start group time success")
 }
 
 func EndGroupTimer(chatID string) {
@@ -58,6 +58,13 @@ func startTestTimer(chatID string, c *cron.Cron) {
 		logrus.Info("[timer] TestTimer")
 		global.Cli.Send("chat_id", chatID, "text", "test")
 	})
+}
+
+func recoverTimer(){
+	logrus.Info("[timer] recover timer")
+	for _, v := range rob.Rob.GetGroupSpaceMap() {
+		StartGroupTimer(v)
+	}
 }
 
 func Debug(){
