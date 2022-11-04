@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
+	"xlab-feishu-robot/global/rob"
 )
 
 var (
@@ -42,10 +43,18 @@ func ReadMeetingForm(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
-func MeetingForm(event *chat.MessageEvent) {
-	msg := "请填写下方的会议问卷：\n" + Url.UrlForMeeting
-	global.Cli.Send("chat_id", event.Message.Chat_id, "text", msg)
+func MeetingForm(messageevent *chat.MessageEvent) {
+	groupID := messageevent.Message.Chat_id
+	space_id := rob.Rob.GetGroupSpace(groupID)
+	nodes := global.Cli.GetAllNodes(space_id)
+	var node_token string
+	for _, value := range nodes {
+		if value.Title == "项目会议" {
+			node_token = value.NodeToken
+		}
+	}
+	msg := "请填写下方的会议问卷：\n" + Url.UrlHead + node_token
+	global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", msg)
 }
