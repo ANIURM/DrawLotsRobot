@@ -2,18 +2,19 @@ package controller
 
 import (
 	"time"
-	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/app/chat"
+	"xlab-feishu-robot/global"
+	"xlab-feishu-robot/global/robot"
+
+	"github.com/YasyaKarasu/feishuapi"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
-	"github.com/YasyaKarasu/feishuapi"
-	"xlab-feishu-robot/global/rob"
 )
 
-func ReviewMeetingMessage(messageevent *chat.MessageEvent){
+func ReviewMeetingMessage(messageevent *chat.MessageEvent) {
 	chatID := messageevent.Message.Chat_id
 	haveReviewMeeting := CheckReviewMeeting(chatID)
-	if(haveReviewMeeting == 0){
+	if haveReviewMeeting == 0 {
 		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "近期没有复盘会，安心啦")
 	}
 }
@@ -35,20 +36,20 @@ func NewTableInfoWithToken(apptoken string, data map[string]interface{}) *TableI
 }
 
 type RecordInfo struct {
-	AppToken string
-	TableID  string `json:"table_id"`
-	RecordID string `json:"record_id"`
+	AppToken           string
+	TableID            string  `json:"table_id"`
+	RecordID           string  `json:"record_id"`
 	Last_modified_time float64 `json:"last_modified_time"`
-	Fields   map[string]interface{}
+	Fields             map[string]interface{}
 }
 
 func NewRecordInfoWithTokenID(apptoken string, table_id string, data map[string]interface{}) *RecordInfo {
 	return &RecordInfo{
-		AppToken: apptoken,
-		TableID:  table_id,
-		RecordID: data["record_id"].(string),
+		AppToken:           apptoken,
+		TableID:            table_id,
+		RecordID:           data["record_id"].(string),
 		Last_modified_time: data["last_modified_time"].(float64),
-		Fields:   data["fields"].(map[string]interface{}),
+		Fields:             data["fields"].(map[string]interface{}),
 	}
 }
 
@@ -66,10 +67,10 @@ func NewFieldInfo(data map[string]interface{}) *FieldInfo {
 	}
 }
 
-func CheckReviewMeeting(chatID string) int{
+func CheckReviewMeeting(chatID string) int {
 
-	space_id := rob.Rob.GetGroupSpace(chatID)
-	_,fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
+	space_id, _ := robot.Robot.GetGroupSpace(chatID)
+	_, fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
 
 	var tableInfoList []TableInfo
@@ -103,14 +104,14 @@ func CheckReviewMeeting(chatID string) int{
 		}
 	}
 	if nearby {
-		global.Cli.Send("chat_id", chatID, "text", "review meeting is nearby")
+		global.Cli.Send("chat_id", chatID, "text", "项目已到复盘会时间，请查看项目进程，若已完成将按时复盘，若未完成请更改复盘会时间")
 		return 1
-	}else{
+	} else {
 		return 0
 	}
 }
 
-func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []TableInfo{
+func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []TableInfo {
 	var tableInfoList []TableInfo
 	for _, bitable := range bitableInfoList {
 		AppToken := bitable.AppToken
@@ -128,13 +129,13 @@ func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []TableInfo{
 	return tableInfoList
 }
 
-func GetAllRecordInfo(tableInfoList []TableInfo) []RecordInfo{
+func GetAllRecordInfo(tableInfoList []TableInfo) []RecordInfo {
 	var recordInfoList []RecordInfo
 	for _, table := range tableInfoList {
 		AppToken := table.AppToken
 		method := "GET"
 		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables/" + table.TableID + "/records"
-		query := map[string]string{} 
+		query := map[string]string{}
 		query["automatic_fields"] = "true"
 		header := map[string]string{}
 		body := map[string]string{}
@@ -148,10 +149,16 @@ func GetAllRecordInfo(tableInfoList []TableInfo) []RecordInfo{
 }
 
 // chatID is the groupID
-func StartReviewMeetingTimer(chatID string, c *cron.Cron){
-	logrus.Info("[timer] ", chatID," add review meeting timer")
+func StartReviewMeetingTimer(chatID string, c *cron.Cron) bool {
 
-	c.AddFunc("0 0 18 * * *", func() {
+	_ , err :=c.AddFunc("0 0 18 * * *", func() {
 		CheckReviewMeeting(chatID)
 	})
+
+	if err != nil {
+		logrus.Error("[timer]" ,chatID, "Review Meeting Timer start error")
+		return true
+	}
+
+	return false
 }

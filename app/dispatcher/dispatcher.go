@@ -67,8 +67,8 @@ func Dispatcher(c *gin.Context) {
 	}
 
 	if handler, exists := eventMap[req.EventType]; exists {
-		handler(req.Event)
 		c.String(http.StatusOK, "OK")
+		handler(req.Event)
 		return
 	} else {
 		logrus.Error("Failed to find event handler: ", req)

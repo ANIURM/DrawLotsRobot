@@ -19,7 +19,9 @@ func Register(r *gin.Engine) {
 	// register your controllers here
 	r.GET("/api/getUserAccessToken", controller.GetUserAccessToken)
 	r.POST("/api/project", controller.InitProject)
-	r.POST("/api/meeting", controller.ReadMeetingForm)
+
+	//改为每个项目在自己的知识库单独储存会议，不需要持久化，弃用该项
+	//r.POST("/api/meeting", controller.ReadMeetingForm)
 
 	// DO NOT CHANGE LINES BELOW
 	// register dispatcher

@@ -4,21 +4,19 @@ import (
 	"strings"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/model"
+	_ "xlab-feishu-robot/model"
+
+	"xlab-feishu-robot/global/robot"
 
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
-	"xlab-feishu-robot/global/rob"
 )
 
-func initUpdateMember() {
-	chat.GroupMessageRegister(UpdateMember, "人员变更")
-}
-
 func UpdateMember(msgEvent *chat.MessageEvent) {
-	space_id := rob.Rob.GetGroupSpace(msgEvent.Message.Chat_id)
+	space_id, _ := robot.Robot.GetGroupSpace(msgEvent.Message.Chat_id)
 	//space_id := "7141190444620513282"
 
+	allEmployees := global.Cli.GetAllEmployees("open_id")
 	allNode := global.Cli.GetAllNodes(space_id)
 	for _, node := range allNode {
 		if node.Title == "核心成员与职务" {
@@ -30,28 +28,60 @@ func UpdateMember(msgEvent *chat.MessageEvent) {
 				var name string
 				var ok bool
 				if name, ok = data["姓名"].(string); !ok {
-					logrus.WithField("wiki_url", "https://xn4zlkzg4p.feishu.cn/wiki/"+node.NodeToken).
-						Error("name incomplete")
+					logrus.WithField("wiki_url", Url.UrlHead+node.NodeToken).
+						Warning("name incomplete")
 					continue
 				}
 				if _, ok = data["职务"].(string); !ok {
-					logrus.WithField("wiki_url", "https://xn4zlkzg4p.feishu.cn/wiki/"+node.NodeToken).
-						Error("job incomplete")
+					logrus.WithField("wiki_url", Url.UrlHead+node.NodeToken).
+						Warning("job incomplete")
 					continue
 				}
 
 				name = strings.Trim(name, "@")
-				employee, err := model.QueryEmployeeByFullname(name)
-				if err != nil {
-					logrus.WithField("name", name).
-						Error("Query employee info fail")
-				}
+				name = strings.Trim(name, " ")
+				// employee, err := model.QueryEmployeeByFullname(name)
+				// if err != nil {
+				// 	logrus.WithField("name", name).
+				// 		Error("Query employee info fail")
+				// }
 				employee_id := make([]string, 0)
-				for _, value := range *employee {
-					employee_id = append(employee_id, value.FeishuOpenId)
+				for _, v := range allEmployees {
+					logrus.Info(v.Name, " ", name, " ", v.Name == name)
+					if v.Name == name {
+						logrus.Info(v.Id)
+						employee_id = append(employee_id, v.Id)
+					}
 				}
+				logrus.Info(employee_id)
 				global.Cli.AddMembers(msgEvent.Message.Chat_id, feishuapi.OpenId, "2", employee_id)
 			}
 		}
 	}
+
+	//提醒项目经理填表
+	SendProjectManageUrl(msgEvent.Message.Chat_id, space_id)
+}
+
+func SendProjectManageUrl(chatId string, spaceId string) {
+	msg := "请项目经理填写甘特图、排期表、任务进度管理：\n"
+	var titles []string
+	titles = append(titles, "排期甘特图", "项目会议", "任务进度管理")
+
+	nodes := global.Cli.GetAllNodes(spaceId)
+	for _, value := range nodes {
+		if in(value.Title, titles) {
+			msg = msg + Url.UrlHead + value.NodeToken + " \n"
+		}
+		if value.HasChild {
+			n := global.Cli.GetAllNodes(spaceId, value.NodeToken)
+			for _, v := range n {
+				if in(v.Title, titles) {
+					msg = msg + Url.UrlHead + v.NodeToken + "\n"
+				}
+			}
+		}
+	}
+
+	global.Cli.Send("chat_id", chatId, "text", msg)
 }

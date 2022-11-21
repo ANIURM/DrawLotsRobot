@@ -4,19 +4,21 @@ package controller
 
 import (
 	"time"
+	"strings"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 
+	"xlab-feishu-robot/global/robot"
+
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
-	"xlab-feishu-robot/global/rob"
 )
 
 // suppose we have already know the space id
 func ProjectOver(messageevent *chat.MessageEvent) {
 	logrus.Debug("project over")
 
-	space_id := rob.Rob.GetGroupSpace(messageevent.Message.Chat_id)
+	space_id, _ := robot.Robot.GetGroupSpace(messageevent.Message.Chat_id)
 	allNode := global.Cli.GetAllNodes(space_id)
 	requirement := map[string]int{"项目介绍": 100, "产品需求文档": 200, "产品测试记录": 200, "用户手册": 300}
 	tooShort := []string{}
@@ -29,6 +31,10 @@ func ProjectOver(messageevent *chat.MessageEvent) {
 				tooShort = append(tooShort, node.Title)
 			}
 			delete(requirement, node.Title)
+		}
+		if _, exist := requirement[strings.Trim(node.Title, "$")]; exist{
+			logrus.Trace("skip ", node.Title)
+			delete(requirement, strings.Trim(node.Title, "$"))
 		}
 	}
 
@@ -53,6 +59,7 @@ func ProjectOver(messageevent *chat.MessageEvent) {
 	if len(requirement) == 0 && len(tooShort) == 0 {
 		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "结项成功")
 		EndGroupTimer(messageevent.Message.Chat_id)
+		robot.Robot.DeleteGroup(messageevent.Message.Chat_id)
 	}
 }
 

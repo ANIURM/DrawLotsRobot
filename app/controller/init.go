@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/app/dispatcher"
 	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/global/rob"
+	"xlab-feishu-robot/global/robot"
 	"xlab-feishu-robot/model"
+
+	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
 )
 
 func InitEvent() {
@@ -20,6 +21,7 @@ func InitEvent() {
 
 func InitMessageBind() {
 	chat.GroupMessageRegister(ProjectCreat, "立项")
+	chat.GroupMessageRegister(UpdateMember, "人员变更")
 	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
 	chat.GroupMessageRegister(ProjectOver, "结项")
 	chat.GroupMessageRegister(ProjectScheduleReminder, "进度更新状态")
@@ -30,8 +32,8 @@ func InitMessageBind() {
 }
 
 func InitDebugSpace() {
-	rob.Rob.SetGroupSpace("oc_01b58f911445bb053d2d34f2a5546243", "7145117180906979330")
-	rob.Rob.SetGroupOwner("oc_01b58f911445bb053d2d34f2a5546243", "65631d22")
+	robot.Robot.SetGroupSpace("oc_01b58f911445bb053d2d34f2a5546243", "7145117180906979330")
+	robot.Robot.SetGroupOwner("oc_01b58f911445bb053d2d34f2a5546243", "65631d22")
 }
 
 func StartGroupTimer(chatID string) {
@@ -43,7 +45,7 @@ func StartGroupTimer(chatID string) {
 	StartProjectScheduleTimer(chatID, c)
 
 	c.Start()
-	logrus.Info("[timer] " ,chatID, " start group time success")
+	logrus.Info("[timer] group [ ", chatID, " ] start group time")
 }
 
 func EndGroupTimer(chatID string) {
@@ -60,26 +62,43 @@ func startTestTimer(chatID string, c *cron.Cron) {
 	})
 }
 
-func recoverTimer(){
-	logrus.Info("[timer] recover timer")
-	for _, v := range rob.Rob.GetGroupSpaceMap() {
-		StartGroupTimer(v)
+func recoverTimer() {
+	logrus.Info("[timer] ------------- recovering timer ---------------")
+	for k, _ := range robot.Robot.GetGroupSpaceMap() {
+		StartGroupTimer(k)
 	}
+	logrus.Info("[timer] ------------- recover timer finish ---------------")
 }
 
-func Debug(){
+func Debug() {
 	model.DeleteRobotStateRecords("testGroup")
-	rob.Rob.SetGroupSpace("testGroup","testSpace")
-	rob.Rob.SetGroupOwner("testGroup", "testUser")
-	space := rob.Rob.GetGroupSpace("testGroup")
-	user := rob.Rob.GetGroupOwner("testGroup")
+	robot.Robot.SetGroupSpace("testGroup", "testSpace")
+	robot.Robot.SetGroupOwner("testGroup", "testUser")
+	space, ok := robot.Robot.GetGroupSpace("testGroup")
+	if !ok {
+		logrus.WithField("Group ID", "testGroup").Error("Group space not found")
+		return
+	}
+	user, ok := robot.Robot.GetGroupOwner("testGroup")
+	if !ok {
+		logrus.WithField("Group ID", "testGroup").Error("Group owner not found")
+		return
+	}
 	if space == "testSpace" && user == "testUser" {
 		logrus.Info("[debug] insert test success")
 	}
-	rob.Rob.SetGroupSpace("testGroup","testSpace222")
-	rob.Rob.SetGroupOwner("testGroup", "testUser222")
-	space = rob.Rob.GetGroupSpace("testGroup")
-	user = rob.Rob.GetGroupOwner("testGroup")
+	robot.Robot.SetGroupSpace("testGroup", "testSpace222")
+	robot.Robot.SetGroupOwner("testGroup", "testUser222")
+	space, ok = robot.Robot.GetGroupSpace("testGroup")
+	if !ok {
+		logrus.WithField("Group ID", "testGroup").Error("Group space not found")
+		return
+	}
+	user, ok = robot.Robot.GetGroupOwner("testGroup")
+	if !ok {
+		logrus.WithField("Group ID", "testGroup").Error("Group owner not found")
+		return
+	}
 	if space == "testSpace222" && user == "testUser222" {
 		logrus.Info("[debug] update test success")
 	}

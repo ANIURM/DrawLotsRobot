@@ -1,8 +1,9 @@
-package rob
+package robot
 
-import(
-	_ "github.com/robfig/cron/v3"
+import (
 	"xlab-feishu-robot/model"
+
+	_ "github.com/robfig/cron/v3"
 )
 
 type robotState struct {
@@ -15,8 +16,9 @@ func (r *robotState) SetGroupSpace(groupID string, spaceID string) {
 	model.SetGroupSpaceRecord(groupID, spaceID)
 }
 
-func (r *robotState) GetGroupSpace(groupID string) string {
-	return r.groupSpace[groupID]
+func (r *robotState) GetGroupSpace(groupID string) (string, bool) {
+	v, ok := r.groupSpace[groupID]
+	return v, ok
 }
 
 func (r *robotState) SetGroupOwner(groupID string, userID string) {
@@ -24,15 +26,22 @@ func (r *robotState) SetGroupOwner(groupID string, userID string) {
 	model.SetGroupOwnerRecord(groupID, userID)
 }
 
-func (r *robotState) GetGroupOwner(groupID string) string {
-	return r.groupOwner[groupID]
+func (r *robotState) GetGroupOwner(groupID string) (string, bool) {
+	v, ok := r.groupOwner[groupID]
+	return v, ok
 }
 
 func (r *robotState) GetGroupSpaceMap() map[string]string {
 	return r.groupSpace
 }
 
-var Rob = robotState{
+func (r *robotState) DeleteGroup(groupID string) {
+	delete(r.groupSpace, groupID)
+	delete(r.groupOwner, groupID)
+	model.DeleteRobotStateRecords(groupID)
+}
+
+var Robot = robotState{
 	groupSpace: make(map[string]string),
 	groupOwner: make(map[string]string),
 }

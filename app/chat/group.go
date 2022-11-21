@@ -2,6 +2,7 @@ package chat
 
 import (
 	"strings"
+	"xlab-feishu-robot/global"
 
 	"github.com/sirupsen/logrus"
 )
@@ -28,6 +29,7 @@ func groupTextMessage(messageevent *MessageEvent) {
 		return
 	} else {
 		logrus.Error("Group message failed to find event handler: ", messageevent.Message.Content)
+		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "关键词"+" ["+messageevent.Message.Content+"] "+"未定义！")
 		return
 	}
 }

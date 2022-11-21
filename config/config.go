@@ -22,6 +22,12 @@ type Config struct {
 	ExampleField2 struct {
 		ExampleField3 int
 	}
+	leaderGroup struct{
+		chat_id string
+	}
+	devGroup struct{
+		chat_id string
+	}
 	FeishuProjectFormPath struct {
 		AppTokenForProjectCreat string
 		TableIdForProjectCreat  string
