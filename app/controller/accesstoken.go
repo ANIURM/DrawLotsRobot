@@ -4,6 +4,7 @@ import (
 	"xlab-feishu-robot/global"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -15,6 +16,10 @@ func GetUserAccessToken(c *gin.Context) {
 	if !status {
 		panic("The param 'code' was not obtained")
 	}
-	UserAccessToken = global.Cli.GetUserAccessToken(code).Access_token
+	returnValue := global.Cli.GetUserAccessToken(code)
+	UserAccessToken = returnValue.Access_token
+	TokenUserID = returnValue.User_id
+	logrus.Info("UserAccessToken: ", UserAccessToken)
+	logrus.Info("TokenUserID: ", TokenUserID)
 	c.String(200, "鉴权成功，您现在可以返回，继续您的操作")
 }

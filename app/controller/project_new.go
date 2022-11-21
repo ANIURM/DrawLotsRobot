@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"xlab-feishu-robot/global/robot"
+	_ "xlab-feishu-robot/global/robot"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,10 +20,9 @@ var (
 	Url       UrlStrings
 	MyProject NewProject
 	//为权限管理预留
-	eventForProjectCreat chat.MessageEvent
+	eventForProjectCreat chat.MessageEvent // contains user_id
+	TokenUserID string // user_id
 )
-
-var leaderGroupID string
 
 // 向用户发送的链接, 从config读取
 type UrlStrings struct {
@@ -106,6 +106,7 @@ func (r *NewProject) Marshal() ([]byte, error) {
 //先向用户发送鉴权链接，等待获取到UserAccessToken，然后再推送立项问卷链接。
 
 func ProjectCreat(event *chat.MessageEvent) {
+
 	msg := "请先查看并点击【机器人私聊会话】中的链接进行用户鉴权，然后填写下方的立项问卷进行立项：\n " + Url.UrlForProjectCreate
 	global.Cli.Send("chat_id", event.Message.Chat_id, "text", msg)
 	msg = "请点击下面的链接进行鉴权: " + Url.UrlForGetUserAccessToken
@@ -122,10 +123,11 @@ func InitProject(c *gin.Context) {
 	data := global.Cli.GetRecordInByte(P.AppTokenForProjectCreat, P.TableIdForProjectCreat, recordId)
 	err := json.Unmarshal(data, &MyProject)
 	if err != nil {
+		logrus.Error("initProject() ERROR")
 		panic(err)
 	}
-	logrus.Info(recordId)
-	logrus.Info(MyProject)
+	// logrus.Info(recordId)
+	// logrus.Info(MyProject)
 	CreateProject()
 }
 
@@ -133,8 +135,17 @@ func CreateProject() bool {
 	var result bool = false
 	if UserAccessToken == "" {
 		err := errors.New("UserAccessToken为空，请再次鉴权！")
-		panic(err)
+		logrus.Error(err)
+		return false
 	}
+	
+	user_id := eventForProjectCreat.Sender.Sender_id.User_id
+	// 如果在群内发起“立项”者，与信息填写者并非一人，不接受
+	if(user_id != TokenUserID){
+		logrus.Warn("TokenUserID: [" , TokenUserID," ] MessageUserID: [ ",user_id, " ] are not same")
+		return false
+	}
+
 	pjt := MyProject.Data.Record.Fields
 	var members []string
 	for _, value := range pjt.ParticipatingMembers {

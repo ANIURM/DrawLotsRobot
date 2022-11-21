@@ -4,6 +4,8 @@ import (
 	"xlab-feishu-robot/app/controller"
 	"xlab-feishu-robot/model"
 
+	"xlab-feishu-robot/app/chat"
+
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -22,10 +24,10 @@ type Config struct {
 	ExampleField2 struct {
 		ExampleField3 int
 	}
-	leaderGroup struct{
+	LeaderGroup struct{
 		chat_id string
 	}
-	devGroup struct{
+	DevGroup struct{
 		chat_id string
 	}
 	FeishuProjectFormPath struct {
@@ -76,6 +78,9 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	controller.P = C.FeishuProjectFormPath
 	controller.T = C.TemplateDocs
 	controller.Url = C.UrlStrings
+	chat.LeaderGroupID = C.LeaderGroup.chat_id
+	chat.DevGroupID = C.DevGroup.chat_id
+	logrus.Info("leader group :[ ", chat.LeaderGroupID," ] dev group : [ ", chat.DevGroupID , " ]")
 }
 
 func SetupDatabase(){

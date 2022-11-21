@@ -20,7 +20,9 @@ func InitEvent() {
 }
 
 func InitMessageBind() {
+	// 产品经理群所有人
 	chat.GroupMessageRegister(ProjectCreat, "立项")
+	// 项目群所有者
 	chat.GroupMessageRegister(UpdateMember, "人员变更")
 	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
 	chat.GroupMessageRegister(ProjectOver, "结项")
@@ -28,6 +30,7 @@ func InitMessageBind() {
 	chat.GroupMessageRegister(GetProjectSchedule, "进度获取")
 	chat.GroupMessageRegister(MeetingForm, "会议问卷")
 	chat.GroupMessageRegister(GroupHelpMenu, "help")
+	// 所有人
 	chat.P2pMessageRegister(p2pHelpMenu, "help")
 }
 

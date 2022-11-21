@@ -3,8 +3,14 @@ package chat
 import (
 	"strings"
 	"xlab-feishu-robot/global"
+	"xlab-feishu-robot/global/robot"
 
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	LeaderGroupID string
+	DevGroupID string
 )
 
 var groupMessageMap = make(map[string]messageHandler)
@@ -25,8 +31,25 @@ func groupTextMessage(messageevent *MessageEvent) {
 	logrus.WithFields(logrus.Fields{"message content": messageevent.Message.Content}).Info("Receive group TEXT message")
 
 	if handler, exists := groupMessageMap[messageevent.Message.Content]; exists {
-		handler(messageevent)
-		return
+		// "立项"是产品经理群所有人权限
+		if(messageevent.Message.Content == "立项"){
+			chat_id := 	messageevent.Message.Chat_id
+			if(chat_id != LeaderGroupID && chat_id != DevGroupID){
+				return
+			}
+			handler(messageevent)
+			return
+		} else {
+			// 群所有者权限
+			chat_id := 	messageevent.Message.Chat_id
+			owner ,_ := robot.Robot.GetGroupOwner(messageevent.Message.Chat_id)
+			if(chat_id != DevGroupID &&  messageevent.Sender.Sender_id.Open_id != owner){
+				return
+			}else{
+				handler(messageevent)
+				return
+			}
+		}
 	} else {
 		logrus.Error("Group message failed to find event handler: ", messageevent.Message.Content)
 		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "关键词"+" ["+messageevent.Message.Content+"] "+"未定义！")

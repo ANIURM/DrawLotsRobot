@@ -8,7 +8,7 @@ import (
 
 type robotState struct {
 	groupSpace map[string]string // groupID ---> spaceID
-	groupOwner map[string]string // groupID ---> userID
+	groupOwner map[string]string // groupID ---> openID
 }
 
 func (r *robotState) SetGroupSpace(groupID string, spaceID string) {
