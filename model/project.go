@@ -32,6 +32,8 @@ type Project struct {
 	ProjectName      string      `bson:"project_name"`
 	ProjectType      ProjectType `bson:"project_type"`
 	ProjectLeaderIds []string    `bson:"project_leader_ids"`
+	ProjectSpace string `bson:"project_space"`
+	ProjectChat string `bson:"project_chat"`
 
 	GanttDocUrl   string `bson:"gantt_doc_url"`
 	PrdDocUrl     string `bson:"prd_doc_url"`
@@ -106,4 +108,36 @@ func QueryProjectRecordsByStatus(status ProjectStatus) (*[]Project, error) {
 		projects = append(projects, result)
 	}
 	return &projects, nil
+}
+
+func QueryProjectRecordsByChat(name string) (*[]Project, error) {
+	var projects []Project
+
+	filter := bson.D{{Key: "project_chat", Value: name}}
+
+	cur, err := project.Find(context.TODO(), filter)
+	if err != nil {
+		logrus.New().WithField("ProjectChat", name).Error(err)
+		return nil, err
+	}
+
+	var result Project
+	for cur.Next(context.TODO()) {
+		cur.Decode(&result)
+		projects = append(projects, result)
+	}
+	return &projects, nil
+}
+
+func UpdateProjectStatusByChat(pro Project) error {
+	filter := bson.D{{Key: "project_chat", Value: pro.ProjectChat}}
+	update := bson.D{{Key: "$set",Value: bson.D{{Key: "project_status", Value: pro.ProjectStatus}}}}
+
+	_ ,err := project.UpdateOne(context.TODO(),filter,update)
+	if err != nil {
+		logrus.New().WithField("ProjectChat", pro.ProjectChat).Error(err)
+		return err
+	}
+
+	return nil
 }

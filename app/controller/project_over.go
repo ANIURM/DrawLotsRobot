@@ -3,10 +3,11 @@ package controller
 // this is a simple test file
 
 import (
-	"time"
 	"strings"
+	"time"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
+	"xlab-feishu-robot/model"
 
 	"xlab-feishu-robot/global/robot"
 
@@ -56,10 +57,20 @@ func ProjectOver(messageevent *chat.MessageEvent) {
 		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", text)
 	}
 
+	// success
 	if len(requirement) == 0 && len(tooShort) == 0 {
 		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "结项成功")
 		EndGroupTimer(messageevent.Message.Chat_id)
 		robot.Robot.DeleteGroup(messageevent.Message.Chat_id)
+		// change data in db
+		projectListPointer,err := model.QueryProjectRecordsByChat(messageevent.Message.Chat_id)
+		projectList := *projectListPointer
+		if(err!= nil){
+			logrus.Error(err)
+		}else{
+			projectList[0].ProjectStatus = model.Finished
+			model.UpdateProjectStatusByChat(projectList[0])
+		}
 	}
 }
 

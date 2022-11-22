@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"xlab-feishu-robot/global/robot"
-	_ "xlab-feishu-robot/global/robot"
+	"xlab-feishu-robot/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,7 +51,7 @@ type Project struct {
 	ProjectId int
 
 	// project info
-	ProjectName      string
+	ProjectName      string //
 	ProjectType      string // internal | external
 	ProjectLeaderIds string // JSON: Array<int> (array of employeeIds)
 	GroupId          string //不储存 groupId，因为一个 project 可能对应多个 group
@@ -72,11 +72,11 @@ type NewProject struct {
 		Record struct {
 			Fields struct {
 				ProjectName          string                `json:"项目名称"`
-				ProjectProperties    string                `json:"项目属性"`
-				ProjectSource        string                `json:"项目来源"`
 				ProjectProfile       string                `json:"项目简介"`
-				ParticipatingMembers []ParticipatingMember `json:"主要参与人员"`
+				ProjectSource        string                `json:"项目来源"` // 内部 | 外部
+				ProjectProperties    string                `json:"项目属性"` // 硬件 | 软件 | 综合
 				ProjectManager       []ParticipatingMember `json:"产品经理"`
+				ParticipatingMembers []ParticipatingMember `json:"主要参与人员"`
 				//CreatTime            string                `json:"创建时间"`
 			} `json:"fields"`
 			ID       string `json:"id"`
@@ -204,7 +204,27 @@ func CreateProject() bool {
 	//启动Timer
 	StartGroupTimer(v.ChatId)
 
+	// db
+	var project model.Project
+	project.ProjectName = pjt.ProjectName
+	if pjt.ProjectSource == "内部" {
+		project.ProjectType = model.Internal
+	}else{
+		project.ProjectType = model.External
+	}
+	project.ProjectType = model.ProjectType(pjt.ProjectProperties) // 硬件 | 软件 | 综合
+	LeaderID,_ := json.Marshal(pjt.ProjectManager[0])
+	project.ProjectLeaderIds = append(project.ProjectLeaderIds, string(LeaderID)) 
+	project.ProjectSpace = s.SpaceId
+	project.ProjectChat = v.ChatId
+	project.ProjectStatus = model.BeforeStart
+	var projectList []model.Project
+	projectList = append(projectList, project)
+	model.InsertProjectRecords(projectList)
+	logrus.Info("Project: [ ", project.ProjectName, " ] has been inserted into db")
+
 	result = true
+
 	//清除变量，为下一次立项准备
 	UserAccessToken = ""
 
