@@ -4,19 +4,19 @@ import (
 	"strings"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
-	_ "xlab-feishu-robot/model"
-
-	"xlab-feishu-robot/global/robot"
+	"xlab-feishu-robot/model"
 
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 )
 
 func UpdateMember(msgEvent *chat.MessageEvent) {
-	space_id, _ := robot.Robot.GetGroupSpace(msgEvent.Message.Chat_id)
-	//space_id := "7141190444620513282"
+	space_id, err := model.GetKnowledgeSpaceByChat(msgEvent.Message.Chat_id)
+	if err != nil {
+		return
+	}
 
-	allEmployees := global.Cli.GetAllEmployees("open_id")
+	allEmployees := global.Cli.GetAllEmployees(feishuapi.OpenId)
 	allNode := global.Cli.GetAllNodes(space_id)
 	for _, node := range allNode {
 		if node.Title == "核心成员与职务" {

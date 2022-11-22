@@ -2,7 +2,7 @@ package config
 
 import (
 	"xlab-feishu-robot/app/controller"
-	"xlab-feishu-robot/model"
+	"xlab-feishu-robot/db"
 
 	"xlab-feishu-robot/app/chat"
 
@@ -47,11 +47,7 @@ type Config struct {
 		UrlForMeeting            string
 	}
 	Database struct {
-		Host     string
-		Port     string
-		User 		string
-		Password string
-		AuthSource   string
+		Url string
 	}
 }
 
@@ -84,5 +80,5 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 }
 
 func SetupDatabase(){
-	model.Conf = C.Database
+	db.Conf = C.Database
 }

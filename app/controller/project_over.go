@@ -9,17 +9,18 @@ import (
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
-	"xlab-feishu-robot/global/robot"
-
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 )
 
 // suppose we have already know the space id
 func ProjectOver(messageevent *chat.MessageEvent) {
-	logrus.Debug("project over")
 
-	space_id, _ := robot.Robot.GetGroupSpace(messageevent.Message.Chat_id)
+	space_id, err := model.GetKnowledgeSpaceByChat(messageevent.Message.Chat_id)
+	if err != nil {
+		return
+	}
+	
 	allNode := global.Cli.GetAllNodes(space_id)
 	requirement := map[string]int{"项目介绍": 100, "产品需求文档": 200, "产品测试记录": 200, "用户手册": 300}
 	tooShort := []string{}
@@ -61,15 +62,13 @@ func ProjectOver(messageevent *chat.MessageEvent) {
 	if len(requirement) == 0 && len(tooShort) == 0 {
 		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "结项成功")
 		EndGroupTimer(messageevent.Message.Chat_id)
-		robot.Robot.DeleteGroup(messageevent.Message.Chat_id)
 		// change data in db
-		projectListPointer,err := model.QueryProjectRecordsByChat(messageevent.Message.Chat_id)
-		projectList := *projectListPointer
+		project ,err := model.QueryProjectRecordsByChat(messageevent.Message.Chat_id)
 		if(err!= nil){
 			logrus.Error(err)
 		}else{
-			projectList[0].ProjectStatus = model.Finished
-			model.UpdateProjectStatusByChat(projectList[0])
+			project.ProjectStatus = model.Finished
+			model.UpdateProjectStatusByChat(project)
 		}
 	}
 }

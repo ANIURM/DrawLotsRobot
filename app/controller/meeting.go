@@ -3,7 +3,7 @@ package controller
 import (
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/global/robot"
+	"xlab-feishu-robot/model"
 )
 
 // var (
@@ -45,7 +45,11 @@ import (
 
 func MeetingForm(messageevent *chat.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
-	space_id, _ := robot.Robot.GetGroupSpace(groupID)
+	space_id, err := model.GetKnowledgeSpaceByChat(groupID)
+	if err != nil {
+		return
+	}
+
 	nodes := global.Cli.GetAllNodes(space_id)
 	var node_token string
 	for _, value := range nodes {

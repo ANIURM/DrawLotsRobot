@@ -3,8 +3,9 @@ package controller
 import (
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/global/robot"
+	"xlab-feishu-robot/model"
 
+	"github.com/YasyaKarasu/feishuapi"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )
@@ -17,10 +18,9 @@ func ProjectScheduleReminder(messageevent *chat.MessageEvent) {
 }
 
 func checkScheduleUpdated(groupID string) {
-	space_id, ok := robot.Robot.GetGroupSpace(groupID)
-	if !ok {
-		logrus.WithField("Group Id", groupID).Error("Group space not found")
-		return
+	space_id, err := model.GetKnowledgeSpaceByChat(groupID)
+	if err != nil {
+		logrus.Warn("[schedule] ", groupID, " get space id fail")
 	}
 	_, fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
@@ -55,10 +55,9 @@ func checkScheduleUpdated(groupID string) {
 		}
 	}
 
-	user_id, ok := robot.Robot.GetGroupOwner(groupID)
-	if !ok {
-		logrus.WithField("Group ID", groupID).Error("Group owner not found")
-		return
+	user_id,err := model.GetProjectLeaderByChat(groupID)
+	if err != nil {
+		logrus.Warn("[schedule] ", groupID, " get project leader fail")
 	}
 	modified := CheckRecordInfoModified(recordInfoList, oldRecordInfo)
 
@@ -81,7 +80,7 @@ func checkScheduleUpdated(groupID string) {
 	link := getlink(space_id)
 	msg = msg + "欲了解详细内容，请点击: " + link
 
-	global.Cli.Send("open_id", user_id, "text", msg)
+	global.Cli.Send(feishuapi.UserOpenId, user_id, "text", msg)
 
 	oldRecordInfo = recordInfoList
 

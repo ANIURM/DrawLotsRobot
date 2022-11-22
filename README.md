@@ -6,11 +6,9 @@
 
 ## Usage
 
-- `app/event_handler` 自定义飞书事件处理方法
-- `app/timer` 自定义定时任务
-- `app/controller` 自定义 service controller
-- `app/router` 为自定义的 service controller 注册路由
-- `config` 在 `Config` 类型定义中添加自定义的配置字段
+- `app/controller` 自定义飞书事件处理方法
+- `app/global` 全局变量
+- `app/dispatcher` 为自定义的 service controller 注册路由
 - `config.yaml` 添加自定义的配置字段
 
 ## Architecture
@@ -18,4 +16,3 @@
 - `app` 机器人主体部分
 - `config` 机器人配置
 - `docs` swagger 生成的 Api 文档
-- `pkg/dispatcher` 飞书事件调度器

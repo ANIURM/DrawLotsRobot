@@ -6,7 +6,6 @@ import (
 	"xlab-feishu-robot/config"
 	"xlab-feishu-robot/docs"
 	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/global/robot"
 	"xlab-feishu-robot/model"
 
 	"github.com/gin-gonic/gin"
@@ -33,9 +32,6 @@ func main() {
 	// database setup
 	config.SetupDatabase()
 	model.InitDatabase()
-
-	// robot state init
-	robot.InitRobotState()
 
 	// robot server
 	r := gin.Default()

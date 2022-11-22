@@ -4,7 +4,6 @@ import (
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/app/dispatcher"
 	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/global/robot"
 	"xlab-feishu-robot/model"
 
 	"github.com/robfig/cron/v3"
@@ -14,15 +13,14 @@ import (
 func InitEvent() {
 	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
 	InitMessageBind()
-	InitDebugSpace()
+	// InitDebugSpace()
+	// TestDB()
 	recoverTimer()
-	// Debug()
 }
 
 func InitMessageBind() {
-	// 产品经理群所有人
+	//TODO: 鉴权
 	chat.GroupMessageRegister(ProjectCreat, "立项")
-	// 项目群所有者
 	chat.GroupMessageRegister(UpdateMember, "人员变更")
 	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
 	chat.GroupMessageRegister(ProjectOver, "结项")
@@ -30,17 +28,79 @@ func InitMessageBind() {
 	chat.GroupMessageRegister(GetProjectSchedule, "进度获取")
 	chat.GroupMessageRegister(MeetingForm, "会议问卷")
 	chat.GroupMessageRegister(GroupHelpMenu, "help")
-	// 所有人
 	chat.P2pMessageRegister(p2pHelpMenu, "help")
 }
 
+//! 只调用一次，用于初始化 DEBUG 信息
 func InitDebugSpace() {
-	robot.Robot.SetGroupSpace("oc_01b58f911445bb053d2d34f2a5546243", "7145117180906979330")
-	robot.Robot.SetGroupOwner("oc_01b58f911445bb053d2d34f2a5546243", "65631d22")
+	// lemon test
+	var project model.Project
+	project.ProjectName = "lemon test"
+	project.ProjectType = model.ProjectType("testProjectType")
+	project.ProjectLeaderId = "65631d22" // 其实应该用 open_id
+	project.ProjectSpace = "7145117180906979330"
+	project.ProjectChat = "oc_01b58f911445bb053d2d34f2a5546243"
+	project.ProjectStatus = model.ProStatus("testProjectStatus")
+
+	var projectList []model.Project
+	projectList = append(projectList, project)
+	model.InsertProjectRecords(projectList)
+
+	// timer should be started
+	project.ProjectName = "start timer"
+	project.ProjectType = model.ProjectType("testProjectType")
+	project.ProjectLeaderId = "65631d22" // 其实应该用 open_id
+	project.ProjectSpace = "7145117180906979330"
+	project.ProjectChat = "start timer"
+	project.ProjectStatus = model.Pending
+
+	projectList = nil 
+	projectList = append(projectList, project)
+	model.InsertProjectRecords(projectList)
+
+	// timer should not be started
+	project.ProjectName = "not start timer"
+	project.ProjectType = model.ProjectType("testProjectType")
+	project.ProjectLeaderId = "65631d22" // 其实应该用 open_id
+	project.ProjectSpace = "7145117180906979330"
+	project.ProjectChat = "not start timer"
+	project.ProjectStatus = model.Finished
+
+	projectList = nil 
+	projectList = append(projectList, project)
+	model.InsertProjectRecords(projectList)
+
+
+	logrus.Info("[debug] init debug space done")
+}
+
+func TestDB(){
+	chatID := "oc_01b58f911445bb053d2d34f2a5546243"
+	leader, err := model.GetProjectLeaderByChat(chatID)
+	if err != nil || leader != "65631d22" {
+		logrus.Error("test db failed")
+	}
+	space, err := model.GetKnowledgeSpaceByChat(chatID)
+	if err != nil || space != "7145117180906979330" {
+		logrus.Error("test db failed")
+	}
+}
+
+func recoverTimer() {
+	logrus.Info("[timer] -------------   recovering timer   ---------------")
+	ChatStatusMap,err := model.GetChatStatusMap()
+	if err != nil {
+		logrus.Error("[timer] get chat status map failed")
+		return
+	}
+	for chatID, status := range ChatStatusMap {
+		if status != model.Finished && status != model.Aborted {
+			StartGroupTimer(chatID)
+		}
+	}
 }
 
 func StartGroupTimer(chatID string) {
-
 	c := cron.New(cron.WithSeconds())
 	global.Timer.GTimers[chatID] = c
 
@@ -48,61 +108,17 @@ func StartGroupTimer(chatID string) {
 	StartProjectScheduleTimer(chatID, c)
 
 	c.Start()
-	logrus.Info("[timer] group [ ", chatID, " ] start group time")
+
+	groupName, err := model.GetProjectNameByChat(chatID)	
+	if err != nil {
+		logrus.Error("[timer] get project name by chat failed")
+		return
+	}
+
+	logrus.Info("[timer] group [ ", groupName, " ] start group time finish")
 }
 
 func EndGroupTimer(chatID string) {
 	global.Timer.GTimers[chatID].Stop()
 	delete(global.Timer.GTimers, chatID)
-}
-
-func startTestTimer(chatID string, c *cron.Cron) {
-	logrus.Info("[timer] add TestTimer")
-
-	c.AddFunc("* * * * * *", func() {
-		logrus.Info("[timer] TestTimer")
-		global.Cli.Send("chat_id", chatID, "text", "test")
-	})
-}
-
-func recoverTimer() {
-	logrus.Info("[timer] ------------- recovering timer ---------------")
-	for k, _ := range robot.Robot.GetGroupSpaceMap() {
-		StartGroupTimer(k)
-	}
-	logrus.Info("[timer] ------------- recover timer finish ---------------")
-}
-
-func Debug() {
-	model.DeleteRobotStateRecords("testGroup")
-	robot.Robot.SetGroupSpace("testGroup", "testSpace")
-	robot.Robot.SetGroupOwner("testGroup", "testUser")
-	space, ok := robot.Robot.GetGroupSpace("testGroup")
-	if !ok {
-		logrus.WithField("Group ID", "testGroup").Error("Group space not found")
-		return
-	}
-	user, ok := robot.Robot.GetGroupOwner("testGroup")
-	if !ok {
-		logrus.WithField("Group ID", "testGroup").Error("Group owner not found")
-		return
-	}
-	if space == "testSpace" && user == "testUser" {
-		logrus.Info("[debug] insert test success")
-	}
-	robot.Robot.SetGroupSpace("testGroup", "testSpace222")
-	robot.Robot.SetGroupOwner("testGroup", "testUser222")
-	space, ok = robot.Robot.GetGroupSpace("testGroup")
-	if !ok {
-		logrus.WithField("Group ID", "testGroup").Error("Group space not found")
-		return
-	}
-	user, ok = robot.Robot.GetGroupOwner("testGroup")
-	if !ok {
-		logrus.WithField("Group ID", "testGroup").Error("Group owner not found")
-		return
-	}
-	if space == "testSpace222" && user == "testUser222" {
-		logrus.Info("[debug] update test success")
-	}
 }

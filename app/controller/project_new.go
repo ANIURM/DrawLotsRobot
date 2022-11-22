@@ -6,9 +6,9 @@ import (
 	"xlab-feishu-robot/app/chat"
 	global "xlab-feishu-robot/global"
 
+	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 
-	"xlab-feishu-robot/global/robot"
 	"xlab-feishu-robot/model"
 
 	"github.com/gin-gonic/gin"
@@ -53,7 +53,7 @@ type Project struct {
 	// project info
 	ProjectName      string //
 	ProjectType      string // internal | external
-	ProjectLeaderIds string // JSON: Array<int> (array of employeeIds)
+	ProjectLeaderId string // JSON: Array<int> (array of employeeIds)
 	GroupId          string //不储存 groupId，因为一个 project 可能对应多个 group
 
 	// doc related info:
@@ -110,7 +110,7 @@ func ProjectCreat(event *chat.MessageEvent) {
 	msg := "请先查看并点击【机器人私聊会话】中的链接进行用户鉴权，然后填写下方的立项问卷进行立项：\n " + Url.UrlForProjectCreate
 	global.Cli.Send("chat_id", event.Message.Chat_id, "text", msg)
 	msg = "请点击下面的链接进行鉴权: " + Url.UrlForGetUserAccessToken
-	global.Cli.Send("open_id", event.Sender.Sender_id.Open_id, "text", msg)
+	global.Cli.Send(feishuapi.UserOpenId, event.Sender.Sender_id.Open_id, "text", msg)
 	//为立项人权限管理预留
 	eventForProjectCreat = *event
 }
@@ -153,13 +153,13 @@ func CreateProject() bool {
 	}
 	manager := pjt.ProjectManager[0].ID
 
-	v := global.Cli.CreateGroup("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, "open_id", manager)
+	v := global.Cli.CreateGroup("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, string(feishuapi.OpenId), manager)
 	if v.ChatId != "" {
 		logrus.Info("已成功建群：" + v.ChatId)
 	}
 
 	//拉人
-	if global.Cli.AddMembers(v.ChatId, "open_id", "1", members) {
+	if global.Cli.AddMembers(v.ChatId, feishuapi.OpenId, "1", members) {
 		logrus.Info("已成功拉人")
 	}
 
@@ -197,10 +197,6 @@ func CreateProject() bool {
 	}
 	logrus.Info("已成功在知识空间建立初始文档")
 
-	//添加映射
-	robot.Robot.SetGroupSpace(v.ChatId, s.SpaceId)
-	robot.Robot.SetGroupOwner(v.ChatId, manager)
-
 	//启动Timer
 	StartGroupTimer(v.ChatId)
 
@@ -213,8 +209,7 @@ func CreateProject() bool {
 		project.ProjectType = model.External
 	}
 	project.ProjectType = model.ProjectType(pjt.ProjectProperties) // 硬件 | 软件 | 综合
-	LeaderID,_ := json.Marshal(pjt.ProjectManager[0])
-	project.ProjectLeaderIds = append(project.ProjectLeaderIds, string(LeaderID)) 
+	project.ProjectLeaderId = pjt.ProjectManager[0].ID
 	project.ProjectSpace = s.SpaceId
 	project.ProjectChat = v.ChatId
 	project.ProjectStatus = model.BeforeStart

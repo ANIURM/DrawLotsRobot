@@ -4,7 +4,7 @@ import (
 	"time"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/global/robot"
+	"xlab-feishu-robot/model"
 
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/robfig/cron/v3"
@@ -69,7 +69,11 @@ func NewFieldInfo(data map[string]interface{}) *FieldInfo {
 
 func CheckReviewMeeting(chatID string) int {
 
-	space_id, _ := robot.Robot.GetGroupSpace(chatID)
+	space_id, err := model.GetKnowledgeSpaceByChat(chatID)
+	if err != nil {
+		return 0
+	}
+
 	_, fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
 

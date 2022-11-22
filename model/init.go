@@ -2,11 +2,11 @@ package model
 
 import (
 	"context"
-	"log"
+	"xlab-feishu-robot/db"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Config struct {
@@ -17,36 +17,20 @@ type Config struct {
 	AuthSource   string
 }
 
-var Conf Config
-var client *mongo.Client
-var employee, group, privilege, project,robot_state *mongo.Collection
+var( 
+	client *mongo.Client
+	project *mongo.Collection
+)
 
 func InitDatabase() {
-	Connect()
-
-	employee = client.Database("xlabFeishuRobot").Collection("employee")
-	group = client.Database("xlabFeishuRobot").Collection("group")
-	privilege = client.Database("xlabFeishuRobot").Collection("privilege")
+	client = db.Connect()
 	project = client.Database("xlabFeishuRobot").Collection("project")
-	robot_state = client.Database("xlabFeishuRobot").Collection("robot_state")
 
+	// create index on ChatID
+	name,err := project.Indexes().CreateOne(context.TODO(), mongo.IndexModel{Keys: bson.D{{Key: "ProjectChat", Value: 1}}})
+	if err != nil {
+		logrus.Error(err)
+	}
+	logrus.Info("Created index on ProjectChat: ", name)
 }
 
-func Connect(){
-	var err error
-	credential := options.Credential{
-		AuthSource: Conf.AuthSource,
-		Username:	Conf.User,
-		Password:  	Conf.Password,
-	}
-	clientOpts := options.Client().ApplyURI("mongodb://"+Conf.Host+":"+Conf.Port).SetAuth(credential)
-	client, err = mongo.Connect(context.TODO(), clientOpts)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = client.Ping(context.TODO(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	logrus.Info("Connected to MongoDB!")
-}
