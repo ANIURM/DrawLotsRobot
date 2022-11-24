@@ -31,7 +31,7 @@ func InitMessageBind() {
 	chat.P2pMessageRegister(p2pHelpMenu, "help")
 }
 
-//! 只调用一次，用于初始化 DEBUG 信息
+// ! 只调用一次，用于初始化 DEBUG 信息
 func InitDebugSpace() {
 	// lemon test
 	var project model.Project
@@ -54,7 +54,7 @@ func InitDebugSpace() {
 	project.ProjectChat = "start timer"
 	project.ProjectStatus = model.Pending
 
-	projectList = nil 
+	projectList = nil
 	projectList = append(projectList, project)
 	model.InsertProjectRecords(projectList)
 
@@ -66,21 +66,20 @@ func InitDebugSpace() {
 	project.ProjectChat = "not start timer"
 	project.ProjectStatus = model.Finished
 
-	projectList = nil 
+	projectList = nil
 	projectList = append(projectList, project)
 	model.InsertProjectRecords(projectList)
-
 
 	logrus.Info("[debug] init debug space done")
 }
 
-func TestDB(){
+func TestDB() {
 	chatID := "oc_01b58f911445bb053d2d34f2a5546243"
-	leader, err := model.GetProjectLeaderByChat(chatID)
+	leader, err := model.QueryProjectLeaderByChat(chatID)
 	if err != nil || leader != "65631d22" {
 		logrus.Error("test db failed")
 	}
-	space, err := model.GetKnowledgeSpaceByChat(chatID)
+	space, err := model.QueryKnowledgeSpaceByChat(chatID)
 	if err != nil || space != "7145117180906979330" {
 		logrus.Error("test db failed")
 	}
@@ -88,7 +87,7 @@ func TestDB(){
 
 func recoverTimer() {
 	logrus.Info("[timer] -------------   recovering timer   ---------------")
-	ChatStatusMap,err := model.GetChatStatusMap()
+	ChatStatusMap, err := model.QueryChatStatusMap()
 	if err != nil {
 		logrus.Error("[timer] get chat status map failed")
 		return
@@ -109,7 +108,7 @@ func StartGroupTimer(chatID string) {
 
 	c.Start()
 
-	groupName, err := model.GetProjectNameByChat(chatID)	
+	groupName, err := model.QueryProjectNameByChat(chatID)
 	if err != nil {
 		logrus.Error("[timer] get project name by chat failed")
 		return

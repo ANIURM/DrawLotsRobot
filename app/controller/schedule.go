@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var oldRecordInfo []RecordInfo
+var oldRecordInfo []feishuapi.RecordInfo
 
 func ProjectScheduleReminder(messageevent *chat.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
@@ -18,19 +18,17 @@ func ProjectScheduleReminder(messageevent *chat.MessageEvent) {
 }
 
 func checkScheduleUpdated(groupID string) {
-	space_id, err := model.GetKnowledgeSpaceByChat(groupID)
+	space_id, err := model.QueryKnowledgeSpaceByChat(groupID)
 	if err != nil {
 		logrus.Warn("[schedule] ", groupID, " get space id fail")
 	}
 	_, fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
 
-	var tableInfoList []TableInfo
-	tableInfoList = GetAllTableInfo(allBitables)
+	tableInfoList := GetAllTableInfo(allBitables)
 	logrus.Debug("[schedule] tableInfoList: ", tableInfoList)
 
-	var recordInfoList []RecordInfo
-	recordInfoList = GetAllRecordInfo(tableInfoList)
+	recordInfoList := GetAllRecordInfo(tableInfoList)
 	logrus.Debug("[shchedule] recordInfoList: ", recordInfoList)
 
 	//播报进度数据获取
@@ -55,14 +53,16 @@ func checkScheduleUpdated(groupID string) {
 		}
 	}
 
-	user_id,err := model.GetProjectLeaderByChat(groupID)
+	user_id, err := model.QueryProjectLeaderByChat(groupID)
 	if err != nil {
 		logrus.Warn("[schedule] ", groupID, " get project leader fail")
 	}
 	modified := CheckRecordInfoModified(recordInfoList, oldRecordInfo)
 
-	groupInfo := global.Cli.GetGroupInfo(groupID)
-	groupName := groupInfo.Name
+	groupName, err := model.QueryProjectNameByChat(groupID)
+	if err != nil {
+		logrus.Warn("[schedule] ", groupID, " get project name fail")
+	}
 	//自动播报
 	var msg string
 	msg = groupName + ": 当前【任务进度管理】看板任务总数" + string(rune(len(notStarted)+len(inProgress)+len(completed))) + "个，未开始任务" + string(rune(len(notStarted))) + "个，进行中任务" + string(rune(len(inProgress))) + "个，已完成任务" + string(rune(len(completed))) + "个\n"
@@ -80,7 +80,7 @@ func checkScheduleUpdated(groupID string) {
 	link := getlink(space_id)
 	msg = msg + "欲了解详细内容，请点击: " + link
 
-	global.Cli.Send(feishuapi.UserOpenId, user_id, "text", msg)
+	global.Cli.Send(feishuapi.UserOpenId, user_id, feishuapi.Text, msg)
 
 	oldRecordInfo = recordInfoList
 
@@ -105,12 +105,12 @@ func getNodeFileToken(space_id string, topFile string, secFile string) (string, 
 	return nodeToken, fileToken
 }
 
-func CheckRecordInfoModified(newRecordInfoList []RecordInfo, oldRecordInfoList []RecordInfo) bool {
+func CheckRecordInfoModified(newRecordInfoList []feishuapi.RecordInfo, oldRecordInfoList []feishuapi.RecordInfo) bool {
 	if len(newRecordInfoList) != len(oldRecordInfoList) {
 		return true
 	}
 	for i := 0; i < len(newRecordInfoList); i++ {
-		if newRecordInfoList[i].Last_modified_time != oldRecordInfoList[i].Last_modified_time {
+		if newRecordInfoList[i].LastModifiedTime != oldRecordInfoList[i].LastModifiedTime {
 			return true
 		}
 	}
@@ -120,11 +120,11 @@ func CheckRecordInfoModified(newRecordInfoList []RecordInfo, oldRecordInfoList [
 func StartProjectScheduleTimer(groupID string, c *cron.Cron) bool {
 
 	// every two days at 9:00
-	_,err:= c.AddFunc("* * 9 1/2 * *", func() {
+	_, err := c.AddFunc("* * 9 1/2 * *", func() {
 		checkScheduleUpdated(groupID)
 	})
 
-	if err != nil{
+	if err != nil {
 		logrus.Error("[timer] ", groupID, " add project schedule timer fail")
 		logrus.Error(err)
 		return true

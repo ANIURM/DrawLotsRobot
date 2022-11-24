@@ -15,41 +15,7 @@ func ReviewMeetingMessage(messageevent *chat.MessageEvent) {
 	chatID := messageevent.Message.Chat_id
 	haveReviewMeeting := CheckReviewMeeting(chatID)
 	if haveReviewMeeting == 0 {
-		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "近期没有复盘会，安心啦")
-	}
-}
-
-type TableInfo struct {
-	AppToken string
-	TableID  string `json:"table_id"`
-	Revision int    `json:"revision"`
-	Name     string `json:"name"`
-}
-
-func NewTableInfoWithToken(apptoken string, data map[string]interface{}) *TableInfo {
-	return &TableInfo{
-		AppToken: apptoken,
-		TableID:  data["table_id"].(string),
-		Revision: int(data["revision"].(float64)),
-		Name:     data["name"].(string),
-	}
-}
-
-type RecordInfo struct {
-	AppToken           string
-	TableID            string  `json:"table_id"`
-	RecordID           string  `json:"record_id"`
-	Last_modified_time float64 `json:"last_modified_time"`
-	Fields             map[string]interface{}
-}
-
-func NewRecordInfoWithTokenID(apptoken string, table_id string, data map[string]interface{}) *RecordInfo {
-	return &RecordInfo{
-		AppToken:           apptoken,
-		TableID:            table_id,
-		RecordID:           data["record_id"].(string),
-		Last_modified_time: data["last_modified_time"].(float64),
-		Fields:             data["fields"].(map[string]interface{}),
+		global.Cli.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "近期没有复盘会，安心啦")
 	}
 }
 
@@ -69,7 +35,7 @@ func NewFieldInfo(data map[string]interface{}) *FieldInfo {
 
 func CheckReviewMeeting(chatID string) int {
 
-	space_id, err := model.GetKnowledgeSpaceByChat(chatID)
+	space_id, err := model.QueryKnowledgeSpaceByChat(chatID)
 	if err != nil {
 		return 0
 	}
@@ -77,12 +43,10 @@ func CheckReviewMeeting(chatID string) int {
 	_, fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
 	allBitables := global.Cli.GetAllBitables(fileToken)
 
-	var tableInfoList []TableInfo
-	tableInfoList = GetAllTableInfo(allBitables)
+	tableInfoList := GetAllTableInfo(allBitables)
 	logrus.Debug("[review meeting] table info list: ", tableInfoList)
 
-	var recordInfoList []RecordInfo
-	recordInfoList = GetAllRecordInfo(tableInfoList)
+	recordInfoList := GetAllRecordInfo(tableInfoList)
 	logrus.Debug("[review meeting] record info list: ", recordInfoList)
 
 	//get the "复盘会" records
@@ -108,46 +72,27 @@ func CheckReviewMeeting(chatID string) int {
 		}
 	}
 	if nearby {
-		global.Cli.Send("chat_id", chatID, "text", "项目已到复盘会时间，请查看项目进程，若已完成将按时复盘，若未完成请更改复盘会时间")
+		global.Cli.Send(feishuapi.GroupChatId, chatID, feishuapi.Text, "项目已到复盘会时间，请查看项目进程，若已完成将按时复盘，若未完成请更改复盘会时间")
 		return 1
 	} else {
 		return 0
 	}
 }
 
-func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []TableInfo {
-	var tableInfoList []TableInfo
+func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []feishuapi.TableInfo {
+	var tableInfoList []feishuapi.TableInfo
 	for _, bitable := range bitableInfoList {
-		AppToken := bitable.AppToken
-		method := "GET"
-		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables"
-		query := map[string]string{}
-		header := map[string]string{}
-		body := map[string]string{}
-		resp := global.Cli.Request(method, path, query, header, body)
-		tablesRaw := resp["items"].([]interface{})
-		for _, tableRaw := range tablesRaw {
-			tableInfoList = append(tableInfoList, *NewTableInfoWithToken(AppToken, tableRaw.(map[string]interface{})))
-		}
+		tables := global.Cli.GetAllTables(bitable.AppToken)
+		tableInfoList = append(tableInfoList, tables...)
 	}
 	return tableInfoList
 }
 
-func GetAllRecordInfo(tableInfoList []TableInfo) []RecordInfo {
-	var recordInfoList []RecordInfo
+func GetAllRecordInfo(tableInfoList []feishuapi.TableInfo) []feishuapi.RecordInfo {
+	var recordInfoList []feishuapi.RecordInfo
 	for _, table := range tableInfoList {
-		AppToken := table.AppToken
-		method := "GET"
-		path := "open-apis/bitable/v1/apps/" + AppToken + "/tables/" + table.TableID + "/records"
-		query := map[string]string{}
-		query["automatic_fields"] = "true"
-		header := map[string]string{}
-		body := map[string]string{}
-		resp := global.Cli.Request(method, path, query, header, body)
-		recordsRaw := resp["items"].([]interface{})
-		for _, recordRaw := range recordsRaw {
-			recordInfoList = append(recordInfoList, *NewRecordInfoWithTokenID(AppToken, table.TableID, recordRaw.(map[string]interface{})))
-		}
+		records := global.Cli.GetAllRecords(table.AppToken, table.TableId)
+		recordInfoList = append(recordInfoList, records...)
 	}
 	return recordInfoList
 }
@@ -155,12 +100,12 @@ func GetAllRecordInfo(tableInfoList []TableInfo) []RecordInfo {
 // chatID is the groupID
 func StartReviewMeetingTimer(chatID string, c *cron.Cron) bool {
 
-	_ , err :=c.AddFunc("0 0 18 * * *", func() {
+	_, err := c.AddFunc("0 0 18 * * *", func() {
 		CheckReviewMeeting(chatID)
 	})
 
 	if err != nil {
-		logrus.Error("[timer]" ,chatID, "Review Meeting Timer start error")
+		logrus.Error("[timer]", chatID, "Review Meeting Timer start error")
 		return true
 	}
 

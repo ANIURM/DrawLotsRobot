@@ -3,7 +3,7 @@ module xlab-feishu-robot
 go 1.19
 
 require (
-	github.com/YasyaKarasu/feishuapi v1.1.15
+	github.com/YasyaKarasu/feishuapi v1.1.18
 	github.com/gin-gonic/gin v1.8.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.9.0

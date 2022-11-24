@@ -11,7 +11,7 @@ import (
 )
 
 func UpdateMember(msgEvent *chat.MessageEvent) {
-	space_id, err := model.GetKnowledgeSpaceByChat(msgEvent.Message.Chat_id)
+	space_id, err := model.QueryKnowledgeSpaceByChat(msgEvent.Message.Chat_id)
 	if err != nil {
 		return
 	}
@@ -40,11 +40,6 @@ func UpdateMember(msgEvent *chat.MessageEvent) {
 
 				name = strings.Trim(name, "@")
 				name = strings.Trim(name, " ")
-				// employee, err := model.QueryEmployeeByFullname(name)
-				// if err != nil {
-				// 	logrus.WithField("name", name).
-				// 		Error("Query employee info fail")
-				// }
 				employee_id := make([]string, 0)
 				for _, v := range allEmployees {
 					logrus.Info(v.Name, " ", name, " ", v.Name == name)
@@ -83,5 +78,5 @@ func SendProjectManageUrl(chatId string, spaceId string) {
 		}
 	}
 
-	global.Cli.Send("chat_id", chatId, "text", msg)
+	global.Cli.Send(feishuapi.GroupChatId, chatId, feishuapi.Text, msg)
 }

@@ -27,13 +27,13 @@ const (
 )
 
 type Project struct {
-	ProjectId        primitive.ObjectID `bson:"_id,omitempty"`
-	ProjectName      string      		`bson:"ProjectName"`
-	ProjectType      ProjectType 		`bson:"ProjectType"`
-	ProjectLeaderId  string      		`bson:"ProjectLeaderId"`
-	ProjectSpace 	 string 	 		`bson:"ProjectSpace"`
-	ProjectChat 	 string      		`bson:"ProjectChat"`
-	ProjectStatus 	 ProStatus   		`bson:"ProjectStatus,omitempty"`
+	ProjectId       primitive.ObjectID `bson:"_id,omitempty"`
+	ProjectName     string             `bson:"ProjectName"`
+	ProjectType     ProjectType        `bson:"ProjectType"`
+	ProjectLeaderId string             `bson:"ProjectLeaderId"`
+	ProjectSpace    string             `bson:"ProjectSpace"`
+	ProjectChat     string             `bson:"ProjectChat"`
+	ProjectStatus   ProStatus          `bson:"ProjectStatus,omitempty"`
 }
 
 func InsertProjectRecords(v []Project) {
@@ -120,7 +120,7 @@ func QueryProjectRecordsByStatus(status ProStatus) (*[]Project, error) {
 func QueryProjectRecordsByChat(name string) (Project, error) {
 	filter := bson.D{{Key: "ProjectChat", Value: name}}
 
-	cur:= project.FindOne(context.TODO(), filter)
+	cur := project.FindOne(context.TODO(), filter)
 
 	var result Project
 	err := cur.Decode(&result)
@@ -133,9 +133,9 @@ func QueryProjectRecordsByChat(name string) (Project, error) {
 
 func UpdateProjectStatusByChat(pro Project) error {
 	filter := bson.D{{Key: "ProjectChat", Value: pro.ProjectChat}}
-	update := bson.D{{Key: "$set",Value: bson.D{{Key: "ProjectStatus", Value: pro.ProjectStatus}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "ProjectStatus", Value: pro.ProjectStatus}}}}
 
-	_ ,err := project.UpdateOne(context.TODO(),filter,update)
+	_, err := project.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		logrus.WithField("ProjectChat", pro.ProjectChat).Error(err)
 		return err
@@ -144,7 +144,7 @@ func UpdateProjectStatusByChat(pro Project) error {
 	return nil
 }
 
-func GetProjectNameByChat(chatID string) (string,error){
+func QueryProjectNameByChat(chatID string) (string, error) {
 	filter := bson.D{{Key: "ProjectChat", Value: chatID}}
 
 	cur := project.FindOne(context.TODO(), filter)
@@ -155,38 +155,38 @@ func GetProjectNameByChat(chatID string) (string,error){
 		logrus.Error(err)
 		return "", err
 	}
-	return result.ProjectName,nil
-} 
-
-func GetProjectLeaderByChat(chatID string) (string,error){
-	filter := bson.D{{Key: "ProjectChat", Value: chatID}}
-
-	cur := project.FindOne(context.TODO(), filter)
-
-	var result Project
-	err := cur.Decode(&result)
-	if err != nil {
-		logrus.Error(err)
-		return "", err
-	}
-	return result.ProjectLeaderId,nil
-} 
-
-func GetKnowledgeSpaceByChat(chatID string) (string,error){
-	filter := bson.D{{Key: "ProjectChat", Value: chatID}}
-
-	cur := project.FindOne(context.TODO(), filter)
-
-	var result Project
-	err := cur.Decode(&result)
-	if err != nil {
-		logrus.Error(err)
-		return "", err
-	}
-	return result.ProjectSpace,nil
+	return result.ProjectName, nil
 }
 
-func GetChatStatusMap () (map[string]ProStatus,error){
+func QueryProjectLeaderByChat(chatID string) (string, error) {
+	filter := bson.D{{Key: "ProjectChat", Value: chatID}}
+
+	cur := project.FindOne(context.TODO(), filter)
+
+	var result Project
+	err := cur.Decode(&result)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	return result.ProjectLeaderId, nil
+}
+
+func QueryKnowledgeSpaceByChat(chatID string) (string, error) {
+	filter := bson.D{{Key: "ProjectChat", Value: chatID}}
+
+	cur := project.FindOne(context.TODO(), filter)
+
+	var result Project
+	err := cur.Decode(&result)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	return result.ProjectSpace, nil
+}
+
+func QueryChatStatusMap() (map[string]ProStatus, error) {
 	cur, err := project.Find(context.TODO(), bson.D{{}})
 	if err != nil {
 		logrus.Error(err)

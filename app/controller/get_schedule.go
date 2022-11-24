@@ -11,7 +11,7 @@ import (
 
 func GetProjectSchedule(messageevent *chat.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
-	space_id, err := model.GetKnowledgeSpaceByChat(groupID)
+	space_id, err := model.QueryKnowledgeSpaceByChat(groupID)
 	if err != nil {
 		logrus.Warn("[schedule] ", groupID, " get space id fail")
 	}
@@ -19,14 +19,16 @@ func GetProjectSchedule(messageevent *chat.MessageEvent) {
 
 	logrus.Debug("nodeToken: ", nodeToken, " fileToken: ", fileToken)
 
-	user_id,err := model.GetProjectLeaderByChat(groupID)
+	user_id, err := model.QueryProjectLeaderByChat(groupID)
 	if err != nil {
 		logrus.Warn("[schedule] ", groupID, " get project leader fail")
-		return 
+		return
 	}
 	fileLink := Url.UrlHead + nodeToken
 
-	groupInfo := global.Cli.GetGroupInfo(groupID)
-	groupName := groupInfo.Name
-	global.Cli.Send(feishuapi.UserUserId, user_id, "text", groupName+" 任务进度： "+fileLink)
+	groupName, err := model.QueryProjectNameByChat(groupID)
+	if err != nil {
+		logrus.Warn("[schedule] ", groupID, " get project name fail")
+	}
+	global.Cli.Send(feishuapi.UserUserId, user_id, feishuapi.Text, groupName+" 任务进度： "+fileLink)
 }

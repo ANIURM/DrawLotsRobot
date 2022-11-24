@@ -21,7 +21,7 @@ var (
 	MyProject NewProject
 	//为权限管理预留
 	eventForProjectCreat chat.MessageEvent // contains user_id
-	TokenUserID string // user_id
+	TokenUserID          string            // user_id
 )
 
 // 向用户发送的链接, 从config读取
@@ -47,25 +47,6 @@ type TemplateDocs struct {
 	SpaceId         string
 	ParentNodeToken string
 }
-type Project struct {
-	ProjectId int
-
-	// project info
-	ProjectName      string //
-	ProjectType      string // internal | external
-	ProjectLeaderId string // JSON: Array<int> (array of employeeIds)
-	GroupId          string //不储存 groupId，因为一个 project 可能对应多个 group
-
-	// doc related info:
-	GanttDocUrl   string // 甘特图，其中的排期自动映射到飞书任务
-	PrdDocUrl     string // PRD
-	TechDocUrl    string // 技术文档
-	FeishuRepoUrl string // 飞书知识空间首页
-
-	// status
-	ProjectStatus string // beforeStart, pending, revising, hang, finished, aborted
-}
-
 type NewProject struct {
 	Code int64 `json:"code"`
 	Data struct {
@@ -108,9 +89,9 @@ func (r *NewProject) Marshal() ([]byte, error) {
 func ProjectCreat(event *chat.MessageEvent) {
 
 	msg := "请先查看并点击【机器人私聊会话】中的链接进行用户鉴权，然后填写下方的立项问卷进行立项：\n " + Url.UrlForProjectCreate
-	global.Cli.Send("chat_id", event.Message.Chat_id, "text", msg)
+	global.Cli.Send(feishuapi.GroupChatId, event.Message.Chat_id, feishuapi.Text, msg)
 	msg = "请点击下面的链接进行鉴权: " + Url.UrlForGetUserAccessToken
-	global.Cli.Send(feishuapi.UserOpenId, event.Sender.Sender_id.Open_id, "text", msg)
+	global.Cli.Send(feishuapi.UserOpenId, event.Sender.Sender_id.Open_id, feishuapi.Text, msg)
 	//为立项人权限管理预留
 	eventForProjectCreat = *event
 }
@@ -126,8 +107,6 @@ func InitProject(c *gin.Context) {
 		logrus.Error("initProject() ERROR")
 		panic(err)
 	}
-	// logrus.Info(recordId)
-	// logrus.Info(MyProject)
 	CreateProject()
 }
 
@@ -138,11 +117,11 @@ func CreateProject() bool {
 		logrus.Error(err)
 		return false
 	}
-	
+
 	user_id := eventForProjectCreat.Sender.Sender_id.User_id
 	// 如果在群内发起“立项”者，与信息填写者并非一人，不接受
-	if(user_id != TokenUserID){
-		logrus.Warn("TokenUserID: [" , TokenUserID," ] MessageUserID: [ ",user_id, " ] are not same")
+	if user_id != TokenUserID {
+		logrus.Warn("TokenUserID: [", TokenUserID, " ] MessageUserID: [ ", user_id, " ] are not same")
 		return false
 	}
 
@@ -153,7 +132,7 @@ func CreateProject() bool {
 	}
 	manager := pjt.ProjectManager[0].ID
 
-	v := global.Cli.CreateGroup("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, string(feishuapi.OpenId), manager)
+	v := global.Cli.CreateGroup("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, feishuapi.OpenId, manager)
 	if v.ChatId != "" {
 		logrus.Info("已成功建群：" + v.ChatId)
 	}
@@ -192,7 +171,7 @@ func CreateProject() bool {
 		}
 		if subNodeParent.Title == "核心成员与职务" {
 			msg := "请产品经理确认项目成员。\n" + Url.UrlHead + subNodeParent.NodeToken
-			global.Cli.Send("chat_id", v.ChatId, "text", msg)
+			global.Cli.Send(feishuapi.GroupChatId, v.ChatId, feishuapi.Text, msg)
 		}
 	}
 	logrus.Info("已成功在知识空间建立初始文档")
@@ -205,7 +184,7 @@ func CreateProject() bool {
 	project.ProjectName = pjt.ProjectName
 	if pjt.ProjectSource == "内部" {
 		project.ProjectType = model.Internal
-	}else{
+	} else {
 		project.ProjectType = model.External
 	}
 	project.ProjectType = model.ProjectType(pjt.ProjectProperties) // 硬件 | 软件 | 综合
@@ -222,10 +201,6 @@ func CreateProject() bool {
 
 	//清除变量，为下一次立项准备
 	UserAccessToken = ""
-
-	//以下清除Project变量会报错，暂时弃用
-	//p := reflect.ValueOf(MyProject).Elem()
-	//p.Set(reflect.Zero(p.Type()))
 
 	return result
 }

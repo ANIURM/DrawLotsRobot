@@ -16,11 +16,11 @@ import (
 // suppose we have already know the space id
 func ProjectOver(messageevent *chat.MessageEvent) {
 
-	space_id, err := model.GetKnowledgeSpaceByChat(messageevent.Message.Chat_id)
+	space_id, err := model.QueryKnowledgeSpaceByChat(messageevent.Message.Chat_id)
 	if err != nil {
 		return
 	}
-	
+
 	allNode := global.Cli.GetAllNodes(space_id)
 	requirement := map[string]int{"项目介绍": 100, "产品需求文档": 200, "产品测试记录": 200, "用户手册": 300}
 	tooShort := []string{}
@@ -34,7 +34,7 @@ func ProjectOver(messageevent *chat.MessageEvent) {
 			}
 			delete(requirement, node.Title)
 		}
-		if _, exist := requirement[strings.Trim(node.Title, "$")]; exist{
+		if _, exist := requirement[strings.Trim(node.Title, "$")]; exist {
 			logrus.Trace("skip ", node.Title)
 			delete(requirement, strings.Trim(node.Title, "$"))
 		}
@@ -46,7 +46,7 @@ func ProjectOver(messageevent *chat.MessageEvent) {
 			text += "<" + key + "> "
 		}
 		text += "请添加相应文档"
-		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", text)
+		global.Cli.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, text)
 	}
 
 	if len(tooShort) != 0 {
@@ -55,18 +55,18 @@ func ProjectOver(messageevent *chat.MessageEvent) {
 			text += "<" + node + ">"
 		}
 		text += "请补充相应内容"
-		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", text)
+		global.Cli.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, text)
 	}
 
 	// success
 	if len(requirement) == 0 && len(tooShort) == 0 {
-		global.Cli.Send("chat_id", messageevent.Message.Chat_id, "text", "结项成功")
+		global.Cli.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "结项成功")
 		EndGroupTimer(messageevent.Message.Chat_id)
 		// change data in db
-		project ,err := model.QueryProjectRecordsByChat(messageevent.Message.Chat_id)
-		if(err!= nil){
+		project, err := model.QueryProjectRecordsByChat(messageevent.Message.Chat_id)
+		if err != nil {
 			logrus.Error(err)
-		}else{
+		} else {
 			project.ProjectStatus = model.Finished
 			model.UpdateProjectStatusByChat(project)
 		}
@@ -82,14 +82,10 @@ func recursiveCountNodeSize(space_id string, node *feishuapi.NodeInfo) int {
 		}
 	}
 
-	methon := "GET"
-	path := "/open-apis/docx/v1/documents/" + node.ObjToken + "/raw_content"
-	query := map[string]string{"document_id": node.ObjToken}
-	headers := map[string]string{}
-	body := map[string]string{}
-	resp := global.Cli.Request(methon, path, query, headers, body)
-	size += len(resp["content"].(string)) / 3 // 3 bytes per chinese character
-	logrus.WithFields(logrus.Fields{"resp": resp["content"].(string)}).Trace("the ", node.Title, " size is: ", size)
+	content := global.Cli.GetRawContent(node.ObjToken)
+
+	size += len(content) / 3 // 3 bytes per chinese character
+	logrus.WithFields(logrus.Fields{"resp": content}).Trace("the ", node.Title, " size is: ", size)
 	// api 频率限定为每秒 5 次，所以这里需要 sleep 200ms
 	time.Sleep(200 * time.Millisecond)
 	return size
