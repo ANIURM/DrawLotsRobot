@@ -13,11 +13,14 @@ var (
 )
 
 func GetUserAccessToken(c *gin.Context) {
+	// FIXME
 	code, status := c.GetQuery("code")
 	if !status {
 		panic("The param 'code' was not obtained")
+		// how dare you PANIC?
 	}
-	returnValue := global.Cli.GetUserAccessToken(code)
+	returnValue := global.Feishu.GetUserAccessToken(code)
+	// if == nil ?
 	UserAccessToken = returnValue.Access_token
 	TokenUserID = returnValue.User_id
 	logrus.Info("UserAccessToken: ", UserAccessToken)
@@ -36,5 +39,5 @@ func GetUserAccessToken(c *gin.Context) {
 	</body>
 	</html>`)
 
-	global.Cli.Send(feishuapi.UserUserId, TokenUserID, feishuapi.Text, "鉴权成功，您现在可以返回，继续您的操作")
+	global.Feishu.Send(feishuapi.UserUserId, TokenUserID, feishuapi.Text, "鉴权成功，您现在可以返回，继续您的操作")
 }

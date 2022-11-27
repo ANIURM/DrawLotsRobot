@@ -26,8 +26,8 @@ func main() {
 	// logrus.SetLevel(logrus.DebugLevel)
 
 	// feishu api client
-	config.SetupFeishuApiClient(&global.Cli)
-	global.Cli.StartTokenTimer()
+	config.SetupFeishuApiClient(&global.Feishu)
+	global.Feishu.StartTokenTimer()
 
 	// database setup
 	config.SetupDatabase()

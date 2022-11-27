@@ -23,7 +23,7 @@ func checkScheduleUpdated(groupID string) {
 		logrus.Warn("[schedule] ", groupID, " get space id fail")
 	}
 	_, fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
-	allBitables := global.Cli.GetAllBitables(fileToken)
+	allBitables := global.Feishu.GetAllBitables(fileToken)
 
 	tableInfoList := GetAllTableInfo(allBitables)
 	logrus.Debug("[schedule] tableInfoList: ", tableInfoList)
@@ -36,9 +36,9 @@ func checkScheduleUpdated(groupID string) {
 	var inProgress []string
 	var completed []string
 	for _, bittable := range allBitables {
-		tables := global.Cli.GetAllTables(bittable.AppToken)
+		tables := global.Feishu.GetAllTables(bittable.AppToken)
 		for _, table := range tables {
-			records := global.Cli.GetAllRecords(bittable.AppToken, table.TableId)
+			records := global.Feishu.GetAllRecords(bittable.AppToken, table.TableId)
 			for _, record := range records {
 				if record.Fields["任务状态"] == "未开始" {
 					notStarted = append(notStarted, record.Fields["任务名"].(string))
@@ -80,7 +80,7 @@ func checkScheduleUpdated(groupID string) {
 	link := getlink(space_id)
 	msg = msg + "欲了解详细内容，请点击: " + link
 
-	global.Cli.Send(feishuapi.UserOpenId, user_id, feishuapi.Text, msg)
+	global.Feishu.Send(feishuapi.UserOpenId, user_id, feishuapi.Text, msg)
 
 	oldRecordInfo = recordInfoList
 
@@ -88,10 +88,10 @@ func checkScheduleUpdated(groupID string) {
 
 func getNodeFileToken(space_id string, topFile string, secFile string) (string, string) {
 	var nodeToken, fileToken string
-	allNode := global.Cli.GetAllNodes(space_id)
+	allNode := global.Feishu.GetAllNodes(space_id)
 	for _, node := range allNode {
 		if node.Title == topFile {
-			allSubNode := global.Cli.GetAllNodes(space_id, node.NodeToken)
+			allSubNode := global.Feishu.GetAllNodes(space_id, node.NodeToken)
 			for _, subNode := range allSubNode {
 				if subNode.Title == secFile {
 					nodeToken = subNode.NodeToken
@@ -138,13 +138,13 @@ func getlink(spaceId string) string {
 	var titles []string
 	titles = append(titles, "排期甘特图", "任务进度管理")
 
-	nodes := global.Cli.GetAllNodes(spaceId)
+	nodes := global.Feishu.GetAllNodes(spaceId)
 	for _, value := range nodes {
 		if in(value.Title, titles) {
 			msg = msg + Url.UrlHead + value.NodeToken + " \n"
 		}
 		if value.HasChild {
-			n := global.Cli.GetAllNodes(spaceId, value.NodeToken)
+			n := global.Feishu.GetAllNodes(spaceId, value.NodeToken)
 			for _, v := range n {
 				if in(v.Title, titles) {
 					msg = msg + Url.UrlHead + v.NodeToken + "\n"

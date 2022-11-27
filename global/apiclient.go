@@ -4,4 +4,4 @@ import (
 	"github.com/YasyaKarasu/feishuapi"
 )
 
-var Cli feishuapi.AppClient
+var Feishu feishuapi.AppClient

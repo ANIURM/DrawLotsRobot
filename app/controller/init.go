@@ -23,7 +23,7 @@ func InitMessageBind() {
 	chat.GroupMessageRegister(ProjectCreat, "立项")
 	chat.GroupMessageRegister(UpdateMember, "人员变更")
 	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
-	chat.GroupMessageRegister(ProjectOver, "结项")
+	chat.GroupMessageRegister(FinishProject, "结项")
 	chat.GroupMessageRegister(ProjectScheduleReminder, "进度更新状态")
 	chat.GroupMessageRegister(GetProjectSchedule, "进度获取")
 	chat.GroupMessageRegister(MeetingForm, "会议问卷")

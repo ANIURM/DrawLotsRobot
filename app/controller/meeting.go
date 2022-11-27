@@ -15,7 +15,7 @@ func MeetingForm(messageevent *chat.MessageEvent) {
 		return
 	}
 
-	nodes := global.Cli.GetAllNodes(space_id)
+	nodes := global.Feishu.GetAllNodes(space_id)
 	var node_token string
 	for _, value := range nodes {
 		if value.Title == "项目会议" {
@@ -23,5 +23,5 @@ func MeetingForm(messageevent *chat.MessageEvent) {
 		}
 	}
 	msg := "请填写下方的会议问卷：\n" + Url.UrlHead + node_token
-	global.Cli.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, msg)
+	global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, msg)
 }

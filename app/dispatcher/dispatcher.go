@@ -17,7 +17,7 @@ import (
 // @Router /feishu_events [post]
 func Dispatcher(c *gin.Context) {
 	// Handler for Feishu Event Http Callback
-	
+
 	// [steps]
 	// - decrypt if needed
 	// - return to test event
@@ -31,7 +31,7 @@ func Dispatcher(c *gin.Context) {
 
 	// decrypt data if ENCRYPT is on
 	var requestStr string
-	if encryptKey := global.Cli.Conf.EncryptKey; encryptKey != "" {
+	if encryptKey := global.Feishu.Conf.EncryptKey; encryptKey != "" {
 		rawBodyJson := make(map[string]any)
 		json.Unmarshal(rawBody, &rawBodyJson)
 		rawRequestStr, _ := rawBodyJson["encrypt"].(string)
@@ -81,14 +81,14 @@ func Dispatcher(c *gin.Context) {
 func validateRequest(c *gin.Context, token string, rawBodyStr string) bool {
 	// check the token and hash in event request header
 
-	if token != global.Cli.Conf.VerificationToken {
+	if token != global.Feishu.Conf.VerificationToken {
 		return false
 	}
 	timestamp := c.Request.Header.Get("X-Lark-Request-Timestamp")
 	nonce := c.Request.Header.Get("X-Lark-Request-Nonce")
 	signature := c.Request.Header.Get("X-Lark-Signature")
 
-	return signature == calculateSignature(timestamp, nonce, global.Cli.Conf.EncryptKey, rawBodyStr)
+	return signature == calculateSignature(timestamp, nonce, global.Feishu.Conf.EncryptKey, rawBodyStr)
 }
 
 func eventRepeatDetect(eventId string) bool {

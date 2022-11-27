@@ -16,13 +16,13 @@ func UpdateMember(msgEvent *chat.MessageEvent) {
 		return
 	}
 
-	allEmployees := global.Cli.GetAllEmployees(feishuapi.OpenId)
-	allNode := global.Cli.GetAllNodes(space_id)
+	allEmployees := global.Feishu.GetAllEmployees(feishuapi.OpenId)
+	allNode := global.Feishu.GetAllNodes(space_id)
 	for _, node := range allNode {
 		if node.Title == "核心成员与职务" {
-			allBitables := global.Cli.GetAllBitables(node.ObjToken)
-			allTables := global.Cli.GetAllTables(allBitables[0].AppToken)
-			allRecords := global.Cli.GetAllRecords(allBitables[0].AppToken, allTables[0].TableId)
+			allBitables := global.Feishu.GetAllBitables(node.ObjToken)
+			allTables := global.Feishu.GetAllTables(allBitables[0].AppToken)
+			allRecords := global.Feishu.GetAllRecords(allBitables[0].AppToken, allTables[0].TableId)
 			for _, value := range allRecords {
 				data := value.Fields
 				var name string
@@ -49,7 +49,7 @@ func UpdateMember(msgEvent *chat.MessageEvent) {
 					}
 				}
 				logrus.Info(employee_id)
-				global.Cli.AddMembers(msgEvent.Message.Chat_id, feishuapi.OpenId, "2", employee_id)
+				global.Feishu.AddMembers(msgEvent.Message.Chat_id, feishuapi.OpenId, "2", employee_id)
 			}
 		}
 	}
@@ -63,13 +63,13 @@ func SendProjectManageUrl(chatId string, spaceId string) {
 	var titles []string
 	titles = append(titles, "排期甘特图", "项目会议", "任务进度管理")
 
-	nodes := global.Cli.GetAllNodes(spaceId)
+	nodes := global.Feishu.GetAllNodes(spaceId)
 	for _, value := range nodes {
 		if in(value.Title, titles) {
 			msg = msg + Url.UrlHead + value.NodeToken + " \n"
 		}
 		if value.HasChild {
-			n := global.Cli.GetAllNodes(spaceId, value.NodeToken)
+			n := global.Feishu.GetAllNodes(spaceId, value.NodeToken)
 			for _, v := range n {
 				if in(v.Title, titles) {
 					msg = msg + Url.UrlHead + v.NodeToken + "\n"
@@ -78,5 +78,5 @@ func SendProjectManageUrl(chatId string, spaceId string) {
 		}
 	}
 
-	global.Cli.Send(feishuapi.GroupChatId, chatId, feishuapi.Text, msg)
+	global.Feishu.Send(feishuapi.GroupChatId, chatId, feishuapi.Text, msg)
 }

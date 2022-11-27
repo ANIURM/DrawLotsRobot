@@ -30,5 +30,5 @@ func GetProjectSchedule(messageevent *chat.MessageEvent) {
 	if err != nil {
 		logrus.Warn("[schedule] ", groupID, " get project name fail")
 	}
-	global.Cli.Send(feishuapi.UserUserId, user_id, feishuapi.Text, groupName+" 任务进度： "+fileLink)
+	global.Feishu.Send(feishuapi.UserUserId, user_id, feishuapi.Text, groupName+" 任务进度： "+fileLink)
 }
