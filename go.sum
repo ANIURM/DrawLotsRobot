@@ -52,6 +52,8 @@ github.com/YasyaKarasu/feishuapi v1.1.17 h1:6C+uxzUZmrLA1m3GKos+9JebVSW8xsBxQOmW
 github.com/YasyaKarasu/feishuapi v1.1.17/go.mod h1:sn5gDUIBia/nJ8youGp6wuz5nwAl0fbY0+y99VnUl7Y=
 github.com/YasyaKarasu/feishuapi v1.1.18 h1:h6CRLSW9VytoaaRFVr7GefGBTvOlYAdaj0t7xhYQ2fs=
 github.com/YasyaKarasu/feishuapi v1.1.18/go.mod h1:sn5gDUIBia/nJ8youGp6wuz5nwAl0fbY0+y99VnUl7Y=
+github.com/YasyaKarasu/feishuapi v1.1.19 h1:wXVI1mG9UeMafiFE8ipMdCjWiTQhIj+X3zBCl9qVADw=
+github.com/YasyaKarasu/feishuapi v1.1.19/go.mod h1:sn5gDUIBia/nJ8youGp6wuz5nwAl0fbY0+y99VnUl7Y=
 github.com/agiledragon/gomonkey/v2 v2.3.1/go.mod h1:ap1AmDzcVOAz1YpeJ3TCzIgstoaWLA6jbbgxfB4w2iY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=

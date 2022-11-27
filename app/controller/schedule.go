@@ -36,9 +36,9 @@ func checkScheduleUpdated(groupID string) {
 	var inProgress []string
 	var completed []string
 	for _, bittable := range allBitables {
-		tables := global.Feishu.GetAllTables(bittable.AppToken)
+		tables := global.Feishu.GetAllTablesInBitable(bittable.AppToken)
 		for _, table := range tables {
-			records := global.Feishu.GetAllRecords(bittable.AppToken, table.TableId)
+			records := global.Feishu.GetAllRecordsInTable(bittable.AppToken, table.TableId)
 			for _, record := range records {
 				if record.Fields["任务状态"] == "未开始" {
 					notStarted = append(notStarted, record.Fields["任务名"].(string))

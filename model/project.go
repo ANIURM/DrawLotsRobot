@@ -47,7 +47,7 @@ func InsertProjectRecords(v []Project) {
 	}
 }
 
-func QueryProjectRecordsByName(name string) (*[]Project, error) {
+func QueryProjectRecordsByName(name string) ([]Project, error) {
 	var projects []Project
 
 	filter := bson.D{{Key: "ProjectName", Value: name}}
@@ -67,10 +67,10 @@ func QueryProjectRecordsByName(name string) (*[]Project, error) {
 		}
 		projects = append(projects, result)
 	}
-	return &projects, nil
+	return projects, nil
 }
 
-func QueryProjectRecordsByType(projtype ProjectType) (*[]Project, error) {
+func QueryProjectRecordsByType(projtype ProjectType) ([]Project, error) {
 	var projects []Project
 
 	filter := bson.D{{Key: "ProjectType", Value: projtype}}
@@ -90,10 +90,10 @@ func QueryProjectRecordsByType(projtype ProjectType) (*[]Project, error) {
 		}
 		projects = append(projects, result)
 	}
-	return &projects, nil
+	return projects, nil
 }
 
-func QueryProjectRecordsByStatus(status ProStatus) (*[]Project, error) {
+func QueryProjectRecordsByStatus(status ProStatus) ([]Project, error) {
 	var projects []Project
 
 	filter := bson.D{{Key: "ProjectStatus", Value: status}}
@@ -113,7 +113,7 @@ func QueryProjectRecordsByStatus(status ProStatus) (*[]Project, error) {
 		}
 		projects = append(projects, result)
 	}
-	return &projects, nil
+	return projects, nil
 }
 
 // one chat one project

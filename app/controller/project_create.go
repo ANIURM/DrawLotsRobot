@@ -101,7 +101,7 @@ func InitProject(c *gin.Context) {
 	temp := make(map[string]string)
 	json.Unmarshal(resp, &temp)
 	recordId := temp["record_id"]
-	data := global.Feishu.GetRecordInByte(P.AppTokenForProjectCreat, P.TableIdForProjectCreat, recordId)
+	data := global.Feishu.GetRecordInTableInByte(P.AppTokenForProjectCreat, P.TableIdForProjectCreat, recordId)
 	err := json.Unmarshal(data, &MyProject)
 	if err != nil {
 		logrus.Error("initProject() ERROR")

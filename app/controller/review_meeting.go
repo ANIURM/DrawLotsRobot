@@ -82,7 +82,7 @@ func CheckReviewMeeting(chatID string) int {
 func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []feishuapi.TableInfo {
 	var tableInfoList []feishuapi.TableInfo
 	for _, bitable := range bitableInfoList {
-		tables := global.Feishu.GetAllTables(bitable.AppToken)
+		tables := global.Feishu.GetAllTablesInBitable(bitable.AppToken)
 		tableInfoList = append(tableInfoList, tables...)
 	}
 	return tableInfoList
@@ -91,7 +91,7 @@ func GetAllTableInfo(bitableInfoList []feishuapi.BitableInfo) []feishuapi.TableI
 func GetAllRecordInfo(tableInfoList []feishuapi.TableInfo) []feishuapi.RecordInfo {
 	var recordInfoList []feishuapi.RecordInfo
 	for _, table := range tableInfoList {
-		records := global.Feishu.GetAllRecords(table.AppToken, table.TableId)
+		records := global.Feishu.GetAllRecordsInTable(table.AppToken, table.TableId)
 		recordInfoList = append(recordInfoList, records...)
 	}
 	return recordInfoList

@@ -21,8 +21,8 @@ func UpdateMember(msgEvent *chat.MessageEvent) {
 	for _, node := range allNode {
 		if node.Title == "核心成员与职务" {
 			allBitables := global.Feishu.GetAllBitables(node.ObjToken)
-			allTables := global.Feishu.GetAllTables(allBitables[0].AppToken)
-			allRecords := global.Feishu.GetAllRecords(allBitables[0].AppToken, allTables[0].TableId)
+			allTables := global.Feishu.GetAllTablesInBitable(allBitables[0].AppToken)
+			allRecords := global.Feishu.GetAllRecordsInTable(allBitables[0].AppToken, allTables[0].TableId)
 			for _, value := range allRecords {
 				data := value.Fields
 				var name string
