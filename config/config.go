@@ -47,11 +47,11 @@ type Config struct {
 		UrlForMeeting            string
 	}
 	Database struct {
-		host       string
-		port       string
-		user       string
-		password   string
-		authSource string
+		Host       string
+		Port       string
+		User       string
+		Password   string
+		AuthSource string
 	}
 }
 
@@ -80,9 +80,8 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	controller.Url = C.UrlStrings
 	chat.LeaderGroupID = C.LeaderGroup.chat_id
 	chat.DevGroupID = C.DevGroup.chat_id
-	logrus.Info("leader group :[ ", chat.LeaderGroupID, " ] dev group : [ ", chat.DevGroupID, " ]")
 }
 
 func SetupDatabase() {
-	db.Conf = db.Config{Url: "mongodb://" + C.Database.user + ":" + C.Database.password + "@" + C.Database.host + "/" + C.Database.authSource}
+	db.Conf = db.Config{Url: "mongodb://" + C.Database.User + ":" + C.Database.Password + "@" + C.Database.Host + ":" +C.Database.Port + "/" + C.Database.AuthSource}
 }
