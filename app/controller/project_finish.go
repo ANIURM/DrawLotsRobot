@@ -5,7 +5,6 @@ package controller
 import (
 	"strings"
 	"time"
-	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
@@ -14,7 +13,7 @@ import (
 )
 
 // suppose we have already know the space id
-func FinishProject(messageevent *chat.MessageEvent) {
+func FinishProject(messageevent *model.MessageEvent) {
 
 	space_id, err := model.QueryKnowledgeSpaceByChat(messageevent.Message.Chat_id)
 	if err != nil {

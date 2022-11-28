@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
@@ -9,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetProjectSchedule(messageevent *chat.MessageEvent) {
+func GetProjectSchedule(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
 	space_id, err := model.QueryKnowledgeSpaceByChat(groupID)
 	if err != nil {

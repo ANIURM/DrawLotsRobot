@@ -4,8 +4,6 @@ import (
 	"xlab-feishu-robot/app/controller"
 	"xlab-feishu-robot/db"
 
-	"xlab-feishu-robot/app/chat"
-
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -78,10 +76,10 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	controller.P = C.FeishuProjectFormPath
 	controller.T = C.TemplateDocs
 	controller.Url = C.UrlStrings
-	chat.LeaderGroupID = C.LeaderGroup.chat_id
-	chat.DevGroupID = C.DevGroup.chat_id
+	controller.LeaderGroupID = C.LeaderGroup.chat_id
+	controller.DevGroupID = C.DevGroup.chat_id
 }
 
 func SetupDatabase() {
-	db.Conf = db.Config{Url: "mongodb://" + C.Database.User + ":" + C.Database.Password + "@" + C.Database.Host + ":" +C.Database.Port + "/" + C.Database.AuthSource}
+	db.Conf = db.Config{Url: "mongodb://" + C.Database.User + ":" + C.Database.Password + "@" + C.Database.Host + ":" + C.Database.Port + "/" + C.Database.AuthSource}
 }

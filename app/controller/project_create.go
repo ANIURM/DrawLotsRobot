@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"xlab-feishu-robot/app/chat"
 	global "xlab-feishu-robot/global"
 
 	"github.com/YasyaKarasu/feishuapi"
@@ -20,8 +19,8 @@ var (
 	Url       UrlStrings
 	MyProject NewProject
 	//为权限管理预留
-	eventForProjectCreat chat.MessageEvent // contains user_id
-	TokenUserID          string            // user_id
+	eventForProjectCreat model.MessageEvent // contains user_id
+	TokenUserID          string             // user_id
 )
 
 // 向用户发送的链接, 从config读取
@@ -86,7 +85,7 @@ func (r *NewProject) Marshal() ([]byte, error) {
 
 //先向用户发送鉴权链接，等待获取到UserAccessToken，然后再推送立项问卷链接。
 
-func ProjectCreat(event *chat.MessageEvent) {
+func ProjectCreat(event *model.MessageEvent) {
 
 	msg := "请先查看并点击【机器人私聊会话】中的链接进行用户鉴权，然后填写下方的立项问卷进行立项：\n " + Url.UrlForProjectCreate
 	global.Feishu.Send(feishuapi.GroupChatId, event.Message.Chat_id, feishuapi.Text, msg)

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"strings"
-	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func UpdateMember(msgEvent *chat.MessageEvent) {
+func UpdateMember(msgEvent *model.MessageEvent) {
 	space_id, err := model.QueryKnowledgeSpaceByChat(msgEvent.Message.Chat_id)
 	if err != nil {
 		return

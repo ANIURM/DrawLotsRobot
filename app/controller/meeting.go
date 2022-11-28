@@ -1,14 +1,13 @@
 package controller
 
 import (
-	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
 	"github.com/YasyaKarasu/feishuapi"
 )
 
-func MeetingForm(messageevent *chat.MessageEvent) {
+func MeetingForm(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
 	space_id, err := model.QueryKnowledgeSpaceByChat(groupID)
 	if err != nil {

@@ -3,7 +3,6 @@ package controller
 import (
 	"strconv"
 	"time"
-	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
@@ -14,7 +13,7 @@ import (
 
 var oldRecordInfo []feishuapi.RecordInfo
 
-func ProjectScheduleReminder(messageevent *chat.MessageEvent) {
+func ProjectScheduleReminder(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
 	checkScheduleUpdated(groupID)
 }

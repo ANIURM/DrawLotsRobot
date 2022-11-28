@@ -2,7 +2,6 @@ package controller
 
 import (
 	"time"
-	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
@@ -11,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ReviewMeetingMessage(messageevent *chat.MessageEvent) {
+func ReviewMeetingMessage(messageevent *model.MessageEvent) {
 	chatID := messageevent.Message.Chat_id
 	haveReviewMeeting := CheckReviewMeeting(chatID)
 	if haveReviewMeeting == 0 {
