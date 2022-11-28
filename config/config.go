@@ -24,10 +24,10 @@ type Config struct {
 	ExampleField2 struct {
 		ExampleField3 int
 	}
-	LeaderGroup struct{
+	LeaderGroup struct {
 		chat_id string
 	}
-	DevGroup struct{
+	DevGroup struct {
 		chat_id string
 	}
 	FeishuProjectFormPath struct {
@@ -47,7 +47,11 @@ type Config struct {
 		UrlForMeeting            string
 	}
 	Database struct {
-		Url string
+		host       string
+		port       string
+		user       string
+		password   string
+		authSource string
 	}
 }
 
@@ -76,9 +80,9 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	controller.Url = C.UrlStrings
 	chat.LeaderGroupID = C.LeaderGroup.chat_id
 	chat.DevGroupID = C.DevGroup.chat_id
-	logrus.Info("leader group :[ ", chat.LeaderGroupID," ] dev group : [ ", chat.DevGroupID , " ]")
+	logrus.Info("leader group :[ ", chat.LeaderGroupID, " ] dev group : [ ", chat.DevGroupID, " ]")
 }
 
-func SetupDatabase(){
-	db.Conf = C.Database
+func SetupDatabase() {
+	db.Conf = db.Config{Url: "mongodb://" + C.Database.user + ":" + C.Database.password + "@" + C.Database.host + "/" + C.Database.authSource}
 }
