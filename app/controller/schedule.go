@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"strconv"
+	"time"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
@@ -31,21 +33,115 @@ func checkScheduleUpdated(groupID string) {
 	recordInfoList := GetAllRecordInfo(tableInfoList)
 	logrus.Debug("[shchedule] recordInfoList: ", recordInfoList)
 
+	tasklist, err := model.QueryTaskRecordsByChat(groupID)
+	if err != nil {
+		logrus.WithField("Group Id", groupID).Error("Query task records by ChatId" + groupID + "failed")
+	}
 	//播报进度数据获取
 	var notStarted []string
 	var inProgress []string
 	var completed []string
+	var updatedTasks []model.Task
+
 	for _, bittable := range allBitables {
 		tables := global.Feishu.GetAllTablesInBitable(bittable.AppToken)
 		for _, table := range tables {
 			records := global.Feishu.GetAllRecordsInTable(bittable.AppToken, table.TableId)
 			for _, record := range records {
-				if record.Fields["任务状态"] == "未开始" {
-					notStarted = append(notStarted, record.Fields["任务名"].(string))
-				} else if record.Fields["任务状态"] == "进行中" {
-					inProgress = append(inProgress, record.Fields["任务名"].(string))
-				} else if record.Fields["任务状态"] == "已完成" {
-					completed = append(completed, record.Fields["任务名"].(string))
+				var task_name string = ""
+				var task_manager string = ""
+				var task_manager_ids []string
+				var task_manager_names []string
+				var task_start_time string = ""
+				var task_end_time string = ""
+				var task_status string = ""
+				if record.Fields["任务状态"] != nil {
+					task_status = record.Fields["任务状态"].(string)
+				}
+				if record.Fields["任务名"] != nil {
+					task_name = record.Fields["任务名"].(string)
+				}
+				if record.Fields["开始时间"] != nil {
+					timestamp := int64(record.Fields["开始时间"].(float64))
+					start_time := time.Unix(timestamp/1000, 0)
+					task_start_time = start_time.Format("2006-01-02 03:04:05")
+				}
+				if record.Fields["结束时间"] != nil {
+					timestamp := int64(record.Fields["结束时间"].(float64))
+					end_time := time.Unix(timestamp/1000, 0)
+					task_end_time = end_time.Format("2006-01-02 03:04:05")
+				}
+				if record.Fields["负责人"] != nil {
+					temp := record.Fields["负责人"].([]interface{})
+					for _, v := range temp {
+						temp1 := v.(map[string]interface{})
+						task_manager = task_manager + temp1["name"].(string) + " "
+						task_manager_ids = append(task_manager_ids, temp1["id"].(string))
+						task_manager_names = append(task_manager_names, temp1["name"].(string))
+					}
+				}
+				//if record.Fields["任务状态"] == "未开始" {
+				//	notStarted = append(notStarted, record.Fields["任务名"].(string))
+				//} else if record.Fields["任务状态"] == "进行中" {
+				//	inProgress = append(inProgress, record.Fields["任务名"].(string))
+				//} else if record.Fields["任务状态"] == "已完成" {
+				//	completed = append(completed, record.Fields["任务名"].(string))
+				//}
+				if task_status == "未开始" {
+					notStarted = append(notStarted, task_name)
+				} else if task_status == "进行中" {
+					inProgress = append(inProgress, task_name)
+				} else if task_status == "已完成" {
+					completed = append(completed, task_name)
+				}
+				//db
+				var aNewRecord bool = false
+				for _, t := range *tasklist {
+					if record.RecordId == t.TaskRecordId {
+						aNewRecord = true
+					}
+				}
+				//如果是新记录，插入数据库
+				if aNewRecord {
+					var task model.Task
+					task.ProjectChat = groupID
+					task.TaskName = task_name
+					task.TaskManagerIds = task_manager_ids
+					task.TaskManagerNames = task_manager_names
+					task.TaskStartTime = task_start_time
+					task.TaskEndTime = task_end_time
+					task.TaskRecordId = record.RecordId
+
+					var taskList []model.Task
+					taskList = append(taskList, task)
+					model.InsertTaskRecords(taskList)
+					updatedTasks = append(updatedTasks, task)
+					logrus.Info("Task: [ ", task.TaskName, " ] has been inserted into db")
+				} else {
+					for _, t := range *tasklist {
+						if record.RecordId == t.TaskRecordId {
+							if task_name == t.TaskName {
+								if task_status == string(t.TaskStatus) && task_start_time == t.TaskStartTime && task_end_time == t.TaskEndTime {
+
+								} else {
+									var task model.Task
+									task.ProjectChat = groupID
+									task.TaskName = task_name
+									task.TaskManagerIds = task_manager_ids
+									task.TaskManagerNames = task_manager_names
+									task.TaskStartTime = task_start_time
+									task.TaskEndTime = task_end_time
+									task.TaskRecordId = record.RecordId
+									updatedTasks = append(updatedTasks, task)
+
+									model.UpdateTaskRecord(groupID, task_status, task_start_time, task_end_time)
+									logrus.Info("Task: [ ", task.TaskName, " ] has been inserted into db")
+								}
+							}
+							break
+						}
+					}
+
 				}
 
 			}
@@ -65,12 +161,22 @@ func checkScheduleUpdated(groupID string) {
 	}
 	//自动播报
 	var msg string
-	msg = groupName + ": 当前【任务进度管理】看板任务总数" + string(rune(len(notStarted)+len(inProgress)+len(completed))) + "个，未开始任务" + string(rune(len(notStarted))) + "个，进行中任务" + string(rune(len(inProgress))) + "个，已完成任务" + string(rune(len(completed))) + "个\n"
+	msg = groupName + ":\n 当前【任务进度管理】看板任务总数" + strconv.Itoa(len(notStarted)+len(inProgress)+len(completed)) + "个，未开始任务" + strconv.Itoa(len(notStarted)) + "个，进行中任务" + strconv.Itoa(len(inProgress)) + "个，已完成任务" + strconv.Itoa(len(completed)) + "个。\n"
+
+	var newTasks []string
+	newTasks = append(newTasks, notStarted...)
+	newTasks = append(newTasks, inProgress...)
+	newTasks = append(newTasks, completed...)
 
 	if modified {
-		//TODO: 获取更新的内容
-
-		updates := ""
+		var updates string
+		for _, task := range updatedTasks {
+			var task_manager_names string
+			for _, name := range task.TaskManagerNames {
+				task_manager_names = task_manager_names + " " + name
+			}
+			updates = updates + "\"" + task.TaskName + "\n" + "负责人：" + task_manager_names + "\n" + "时间：" + task.TaskStartTime + " - " + task.TaskEndTime + "\n" + "状态：" + string(task.TaskStatus) + "\"\n"
+		}
 
 		msg = msg + "更新内容：\n" + updates
 
