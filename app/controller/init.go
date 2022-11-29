@@ -13,6 +13,7 @@ import (
 func InitEvent() {
 	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
 	InitMessageBind()
+	AuthCallback()
 	// InitDebugSpace()
 	// TestDB()
 	recoverTimer()
@@ -29,6 +30,10 @@ func InitMessageBind() {
 	chat.GroupMessageRegister(MeetingForm, "会议问卷")
 	chat.GroupMessageRegister(GroupHelpMenu, "help")
 	chat.P2pMessageRegister(p2pHelpMenu, "help")
+}
+
+func AuthCallback() {
+	AuthRegister(Authenticate) //鉴权回调
 }
 
 // ! 只调用一次，用于初始化 DEBUG 信息

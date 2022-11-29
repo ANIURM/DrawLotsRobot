@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
+	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 )
@@ -39,5 +40,13 @@ func Authenticate(messageevent *model.MessageEvent) model.Privileges {
 			return model.ProjectGroupLeader
 		}
 	}
+
+}
+
+func AuthRegister(f chat.AuthHandler) {
+	if _, isEventExist := chat.AuthMap["鉴权"]; isEventExist {
+		logrus.Warning("Double declaration of group message handler: ", "鉴权")
+	}
+	chat.AuthMap["鉴权"] = f
 
 }

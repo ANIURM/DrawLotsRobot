@@ -29,5 +29,5 @@ func GetProjectSchedule(messageevent *model.MessageEvent) {
 	if err != nil {
 		logrus.Warn("[schedule] ", groupID, " get project name fail")
 	}
-	global.Feishu.Send(feishuapi.UserUserId, user_id, feishuapi.Text, groupName+" 任务进度： "+fileLink)
+	global.Feishu.Send(feishuapi.UserOpenId, user_id, feishuapi.Text, groupName+" 任务进度： "+fileLink)
 }

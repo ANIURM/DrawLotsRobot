@@ -2,7 +2,6 @@ package chat
 
 import (
 	"strings"
-	"xlab-feishu-robot/app/controller"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
 
@@ -11,6 +10,10 @@ import (
 )
 
 var groupMessageMap = make(map[string]messageHandler)
+
+type AuthHandler func(messageevent *model.MessageEvent) model.Privileges
+
+var AuthMap = make(map[string]AuthHandler)
 
 func group(messageevent *model.MessageEvent) {
 	switch strings.ToUpper(messageevent.Message.Message_type) {
@@ -28,7 +31,15 @@ func groupTextMessage(messageevent *model.MessageEvent) {
 	logrus.WithFields(logrus.Fields{"message content": messageevent.Message.Content}).Info("Receive group TEXT message")
 
 	if handler, exists := groupMessageMap[messageevent.Message.Content]; exists {
-		privileges := controller.Authenticate(messageevent)
+
+		var privileges model.Privileges
+		if auth_handler, exists := AuthMap["鉴权"]; exists {
+			privileges = auth_handler(messageevent)
+		} else {
+			logrus.Warn("Failed to find event handler: ", "鉴权")
+			return
+		}
+
 		if privileges == model.Other {
 			return
 		} else if privileges == model.ProductManagerGroupMembers {

@@ -23,10 +23,10 @@ type Config struct {
 		ExampleField3 int
 	}
 	LeaderGroup struct {
-		chat_id string
+		ChatId string
 	}
 	DevGroup struct {
-		chat_id string
+		ChatId string
 	}
 	FeishuProjectFormPath struct {
 		AppTokenForProjectCreat string
@@ -76,8 +76,8 @@ func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	controller.P = C.FeishuProjectFormPath
 	controller.T = C.TemplateDocs
 	controller.Url = C.UrlStrings
-	controller.LeaderGroupID = C.LeaderGroup.chat_id
-	controller.DevGroupID = C.DevGroup.chat_id
+	controller.LeaderGroupID = C.LeaderGroup.ChatId
+	controller.DevGroupID = C.DevGroup.ChatId
 }
 
 func SetupDatabase() {

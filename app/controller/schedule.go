@@ -183,7 +183,7 @@ func checkScheduleUpdated(groupID string) {
 		msg = "请及时更新排期甘特图和任务进度管理，跟进项目进程！ \n" + msg
 	}
 	link := getlink(space_id)
-	msg = msg + "欲了解详细内容，请点击: " + link
+	msg = msg + "欲了解详细内容，请点击: \n" + link
 
 	global.Feishu.Send(feishuapi.UserOpenId, user_id, feishuapi.Text, msg)
 
