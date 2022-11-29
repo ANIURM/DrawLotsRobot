@@ -25,13 +25,13 @@ type Task struct {
 	TaskId       primitive.ObjectID `bson:"_id,omitempty"`
 	TaskRecordId string             `bson:"task_record_id"`
 
-	ProjectChat      string     `bson:"project_chat"`       // chat_id
-	TaskName         string     `bson:"task_name"`          // 任务名称
-	TaskStatus       TaskStatus `bson:"task_status"`        // 任务状态
-	TaskManagerIds   []string   `bson:"task_manager_ids"`   //任务负责人
-	TaskManagerNames []string   `bson:"task_manager_names"` //任务负责人
-	TaskStartTime    string     `bson:"task_start_time"`    //开始时间
-	TaskEndTime      string     `bson:"task_end_time"`      //结束时间
+	ProjectChat      string   `bson:"project_chat"`       // chat_id
+	TaskName         string   `bson:"task_name"`          // 任务名称
+	TaskStatus       string   `bson:"task_status"`        // 任务状态
+	TaskManagerIds   []string `bson:"task_manager_ids"`   //任务负责人
+	TaskManagerNames []string `bson:"task_manager_names"` //任务负责人
+	TaskStartTime    string   `bson:"task_start_time"`    //开始时间
+	TaskEndTime      string   `bson:"task_end_time"`      //结束时间
 }
 
 func InsertTaskRecords(v []Task) {
@@ -66,20 +66,20 @@ func QueryTaskRecordsByChat(chat_id string) (*[]Task, error) {
 	return &tasks, nil
 }
 
-func UpdateTaskRecord(ProjectChat string, taskStatus, taskStartTime, taskEndTime string) {
+func UpdateTaskRecord(ProjectChat string, recordId, taskStatus, taskStartTime, taskEndTime string) {
 
-	filter := bson.D{{Key: "project_chat", Value: ProjectChat}}
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "project_chat", Value: ProjectChat}, {Key: "task_status", Value: taskStatus}, {Key: "task_start_time", Value: taskStartTime}, {Key: "task_end_time", Value: taskEndTime}}}}
+	filter := bson.D{{Key: "project_chat", Value: ProjectChat}, {Key: "task_record_id", Value: recordId}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "task_status", Value: taskStatus}, {Key: "task_start_time", Value: taskStartTime}, {Key: "task_end_time", Value: taskEndTime}}}}
 
 	result, err := task.UpdateOne(context.TODO(), filter, update)
 
 	if err != nil {
-		logrus.Info("[robot-state-db] update task record failed with error :", err)
+		logrus.Info("[Task-db] update task record failed with error :", err)
 		logrus.Error(err)
 	}
 
 	if result.MatchedCount != 0 {
-		logrus.Info("[robot-state-db] matched and replaced an existing document with chatID " + ProjectChat)
+		logrus.Info("[Task-db] matched and replaced an existing task document with chatID " + ProjectChat + " recordId: " + recordId)
 		return
 	}
 }

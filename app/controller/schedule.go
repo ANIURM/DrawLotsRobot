@@ -41,6 +41,7 @@ func checkScheduleUpdated(groupID string) {
 	var inProgress []string
 	var completed []string
 	var updatedTasks []model.Task
+	//modified := CheckRecordInfoModified(recordInfoList, oldRecordInfo)
 
 	for _, bittable := range allBitables {
 		tables := global.Feishu.GetAllTablesInBitable(bittable.AppToken)
@@ -79,13 +80,6 @@ func checkScheduleUpdated(groupID string) {
 						task_manager_names = append(task_manager_names, temp1["name"].(string))
 					}
 				}
-				//if record.Fields["任务状态"] == "未开始" {
-				//	notStarted = append(notStarted, record.Fields["任务名"].(string))
-				//} else if record.Fields["任务状态"] == "进行中" {
-				//	inProgress = append(inProgress, record.Fields["任务名"].(string))
-				//} else if record.Fields["任务状态"] == "已完成" {
-				//	completed = append(completed, record.Fields["任务名"].(string))
-				//}
 				if task_status == "未开始" {
 					notStarted = append(notStarted, task_name)
 				} else if task_status == "进行中" {
@@ -94,10 +88,10 @@ func checkScheduleUpdated(groupID string) {
 					completed = append(completed, task_name)
 				}
 				//db
-				var aNewRecord bool = false
+				var aNewRecord bool = true
 				for _, t := range *tasklist {
 					if record.RecordId == t.TaskRecordId {
-						aNewRecord = true
+						aNewRecord = false
 					}
 				}
 				//如果是新记录，插入数据库
@@ -110,6 +104,7 @@ func checkScheduleUpdated(groupID string) {
 					task.TaskStartTime = task_start_time
 					task.TaskEndTime = task_end_time
 					task.TaskRecordId = record.RecordId
+					task.TaskStatus = task_status
 
 					var taskList []model.Task
 					taskList = append(taskList, task)
@@ -120,7 +115,7 @@ func checkScheduleUpdated(groupID string) {
 					for _, t := range *tasklist {
 						if record.RecordId == t.TaskRecordId {
 							if task_name == t.TaskName {
-								if task_status == string(t.TaskStatus) && task_start_time == t.TaskStartTime && task_end_time == t.TaskEndTime {
+								if task_status == t.TaskStatus && task_start_time == t.TaskStartTime && task_end_time == t.TaskEndTime {
 
 								} else {
 									var task model.Task
@@ -131,10 +126,11 @@ func checkScheduleUpdated(groupID string) {
 									task.TaskStartTime = task_start_time
 									task.TaskEndTime = task_end_time
 									task.TaskRecordId = record.RecordId
+									task.TaskStatus = task_status
 									updatedTasks = append(updatedTasks, task)
 
-									model.UpdateTaskRecord(groupID, task_status, task_start_time, task_end_time)
-									logrus.Info("Task: [ ", task.TaskName, " ] has been inserted into db")
+									model.UpdateTaskRecord(groupID, record.RecordId, task_status, task_start_time, task_end_time)
+									logrus.Info("Task: [ ", task.TaskName, " ] has been updated into db")
 								}
 							}
 							break
@@ -152,7 +148,6 @@ func checkScheduleUpdated(groupID string) {
 	if err != nil {
 		logrus.Warn("[schedule] ", groupID, " get project leader fail")
 	}
-	modified := CheckRecordInfoModified(recordInfoList, oldRecordInfo)
 
 	groupName, err := model.QueryProjectNameByChat(groupID)
 	if err != nil {
@@ -167,7 +162,7 @@ func checkScheduleUpdated(groupID string) {
 	newTasks = append(newTasks, inProgress...)
 	newTasks = append(newTasks, completed...)
 
-	if modified {
+	if len(updatedTasks) != 0 {
 		var updates string
 		for _, task := range updatedTasks {
 			var task_manager_names string
@@ -186,6 +181,7 @@ func checkScheduleUpdated(groupID string) {
 	msg = msg + "欲了解详细内容，请点击: \n" + link
 
 	global.Feishu.Send(feishuapi.UserOpenId, user_id, feishuapi.Text, msg)
+	updatedTasks = nil
 
 	oldRecordInfo = recordInfoList
 

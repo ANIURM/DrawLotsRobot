@@ -34,6 +34,7 @@ func GetUserAccessToken(c *gin.Context) {
 	</head>
 	<body>
 		<script>
+			window.location.href="about:blank";
 			window.close();
 		</script>
 	</body>
