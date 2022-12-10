@@ -41,9 +41,7 @@ func UpdateMember(msgEvent *model.MessageEvent) {
 				name = strings.Trim(name, " ")
 				employee_id := make([]string, 0)
 				for _, v := range allEmployees {
-					logrus.Info(v.Name, " ", name, " ", v.Name == name)
 					if v.Name == name {
-						logrus.Info(v.Id)
 						employee_id = append(employee_id, v.Id)
 					}
 				}

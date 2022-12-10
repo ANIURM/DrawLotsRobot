@@ -175,9 +175,6 @@ func CreateProject() bool {
 	}
 	logrus.Info("已成功在知识空间建立初始文档")
 
-	//启动Timer
-	StartGroupTimer(v.ChatId)
-
 	// db
 	var project model.Project
 	project.ProjectName = pjt.ProjectName
@@ -195,6 +192,9 @@ func CreateProject() bool {
 	projectList = append(projectList, project)
 	model.InsertProjectRecords(projectList)
 	logrus.Info("Project: [ ", project.ProjectName, " ] has been inserted into db")
+	
+	//启动Timer
+	StartGroupTimer(v.ChatId)
 
 	result = true
 

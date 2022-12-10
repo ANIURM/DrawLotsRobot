@@ -32,23 +32,24 @@ func groupTextMessage(messageevent *model.MessageEvent) {
 
 	if handler, exists := groupMessageMap[messageevent.Message.Content]; exists {
 
-		var privileges model.Privileges
-		if auth_handler, exists := AuthMap["鉴权"]; exists {
-			privileges = auth_handler(messageevent)
-		} else {
-			logrus.Warn("Failed to find event handler: ", "鉴权")
-			return
-		}
+		// var privileges model.Privileges
+		// if auth_handler, exists := AuthMap["鉴权"]; exists {
+		// 	privileges = auth_handler(messageevent)
+		// } else {
+		// 	logrus.Warn("Failed to find event handler: ", "鉴权")
+		// 	return
+		// }
 
-		if privileges == model.Other {
-			return
-		} else if privileges == model.ProductManagerGroupMembers {
-			handler(messageevent)
-			return
-		} else if privileges == model.ProjectGroupLeader {
-			handler(messageevent)
-			return
-		}
+		// if privileges == model.Other {
+		// 	return
+		// } else if privileges == model.ProductManagerGroupMembers {
+		// 	handler(messageevent)
+		// 	return
+		// } else if privileges == model.ProjectGroupLeader {
+		// 	handler(messageevent)
+		// 	return
+		// }
+		handler(messageevent)
 	} else {
 		logrus.Error("Group message failed to find event handler: ", messageevent.Message.Content)
 		global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, "text", "关键词"+" ["+messageevent.Message.Content+"] "+"未定义！")

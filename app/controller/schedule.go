@@ -221,7 +221,7 @@ func CheckRecordInfoModified(newRecordInfoList []feishuapi.RecordInfo, oldRecord
 func StartProjectScheduleTimer(groupID string, c *cron.Cron) bool {
 
 	// every two days at 9:00
-	_, err := c.AddFunc("* * 9 1/2 * *", func() {
+	_, err := c.AddFunc("0 0 9 1/2 * *", func() {
 		checkScheduleUpdated(groupID)
 	})
 
