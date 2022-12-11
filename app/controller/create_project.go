@@ -47,12 +47,12 @@ type NewProject struct {
 	Data struct {
 		Record struct {
 			Fields struct {
-				ProjectName          string                `json:"项目名称"`
-				ProjectProfile       string                `json:"项目简介"`
-				ProjectSource        string                `json:"项目来源"` // 内部 | 外部
-				ProjectProperties    string                `json:"项目属性"` // 硬件 | 软件 | 综合
-				ProjectManager       []ParticipatingMember `json:"产品经理"`
-				ParticipatingMembers []ParticipatingMember `json:"主要参与人员"`
+				ProjectName       string                `json:"项目名称"`
+				ProjectProfile    string                `json:"项目简介"`
+				ProjectSource     string                `json:"项目来源"` // 内部 | 外部
+				ProjectProperties string                `json:"项目属性"` // 硬件 | 软件 | 设计 | 运营 | 综合
+				ProjectManager    []ParticipatingMember `json:"产品经理"`
+				//ParticipatingMembers []ParticipatingMember `json:"主要参与人员"`
 				//CreatTime            string                `json:"创建时间"`
 			} `json:"fields"`
 			ID       string `json:"id"`
@@ -126,10 +126,10 @@ func CreateProject(MyProject NewProject) bool {
 	}
 
 	pjt := MyProject.Data.Record.Fields
-	var members []string
-	for _, value := range pjt.ParticipatingMembers {
-		members = append(members, value.ID)
-	}
+	//var members []string
+	//for _, value := range pjt.ParticipatingMembers {
+	//	members = append(members, value.ID)
+	//}
 	manager := pjt.ProjectManager[0].ID
 
 	v := global.Feishu.GroupCreate("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, feishuapi.OpenId, manager)
@@ -138,9 +138,9 @@ func CreateProject(MyProject NewProject) bool {
 	}
 
 	//拉人
-	if global.Feishu.GroupAddMembers(v.ChatId, feishuapi.OpenId, "1", members) {
-		logrus.Info("已成功拉人")
-	}
+	//if global.Feishu.GroupAddMembers(v.ChatId, feishuapi.OpenId, "1", members) {
+	//	logrus.Info("已成功拉人")
+	//}
 
 	//创建知识空间
 	s := global.Feishu.KnowledgeSpaceCreate("【"+pjt.ProjectSource+"】"+pjt.ProjectName, pjt.ProjectProfile, "Bearer "+UserAccessToken[MyProject.Data.Record.Fields.ProjectManager[0].ID])
