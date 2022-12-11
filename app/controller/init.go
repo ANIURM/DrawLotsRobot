@@ -22,7 +22,7 @@ func InitEvent() {
 func InitMessageBind() {
 	//TODO: 鉴权
 	chat.GroupMessageRegister(ProjectCreat, "立项")
-	chat.GroupMessageRegister(UpdateMember, "人员变更")
+	chat.GroupMessageRegister(ReceiveUpdateMember, "人员变更")
 	chat.GroupMessageRegister(ReviewMeetingMessage, "复盘")
 	chat.GroupMessageRegister(FinishProject, "结项")
 	chat.GroupMessageRegister(ProjectScheduleReminder, "进度更新状态")
@@ -110,6 +110,7 @@ func StartGroupTimer(chatID string) {
 
 	StartReviewMeetingTimer(chatID, c)
 	StartProjectScheduleTimer(chatID, c)
+	StartMemberUpdateTimer(chatID,c)
 
 	c.Start()
 

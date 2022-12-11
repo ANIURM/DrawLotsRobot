@@ -88,9 +88,9 @@ func (r *NewProject) Marshal() ([]byte, error) {
 func ProjectCreat(event *model.MessageEvent) {
 
 	msg := "请先查看并点击【机器人私聊会话】中的链接进行用户鉴权，然后填写下方的立项问卷进行立项：\n " + Url.UrlForProjectCreate
-	global.Feishu.Send(feishuapi.GroupChatId, event.Message.Chat_id, feishuapi.Text, msg)
+	global.Feishu.MessageSend(feishuapi.GroupChatId, event.Message.Chat_id, feishuapi.Text, msg)
 	msg = "请点击下面的链接进行鉴权: " + Url.UrlForGetUserAccessToken
-	global.Feishu.Send(feishuapi.UserOpenId, event.Sender.Sender_id.Open_id, feishuapi.Text, msg)
+	global.Feishu.MessageSend(feishuapi.UserOpenId, event.Sender.Sender_id.Open_id, feishuapi.Text, msg)
 	//为立项人权限管理预留
 	eventForProjectCreat = *event
 }
@@ -100,7 +100,7 @@ func InitProject(c *gin.Context) {
 	temp := make(map[string]string)
 	json.Unmarshal(resp, &temp)
 	recordId := temp["record_id"]
-	data := global.Feishu.GetRecordInTableInByte(P.AppTokenForProjectCreat, P.TableIdForProjectCreat, recordId)
+	data := global.Feishu.DocumentGetRecordInByte(P.AppTokenForProjectCreat, P.TableIdForProjectCreat, recordId)
 	err := json.Unmarshal(data, &MyProject)
 	if err != nil {
 		logrus.Error("initProject() ERROR")
@@ -131,46 +131,46 @@ func CreateProject() bool {
 	}
 	manager := pjt.ProjectManager[0].ID
 
-	v := global.Feishu.CreateGroup("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, feishuapi.OpenId, manager)
+	v := global.Feishu.GroupCreate("【"+pjt.ProjectProperties+"】"+pjt.ProjectName, feishuapi.OpenId, manager)
 	if v.ChatId != "" {
 		logrus.Info("已成功建群：" + v.ChatId)
 	}
 
 	//拉人
-	if global.Feishu.AddMembers(v.ChatId, feishuapi.OpenId, "1", members) {
+	if global.Feishu.GroupAddMembers(v.ChatId, feishuapi.OpenId, "1", members) {
 		logrus.Info("已成功拉人")
 	}
 
 	//创建知识空间
-	s := global.Feishu.CreateKnowledgeSpace("【"+pjt.ProjectSource+"】"+pjt.ProjectName, pjt.ProjectProfile, "Bearer "+UserAccessToken)
+	s := global.Feishu.KnowledgeSpaceCreate("【"+pjt.ProjectSource+"】"+pjt.ProjectName, pjt.ProjectProfile, "Bearer "+UserAccessToken)
 	if v.ChatId != "" {
 		logrus.Info("已成功建立知识空间：" + s.SpaceId)
 	}
 	//将机器人设为管理员
 	var botIds []string
-	robotId := global.Feishu.GetRobotInfo().OpenId
+	robotId := global.Feishu.RobotGetInfo().OpenId
 	botIds = append(botIds, robotId)
-	global.Feishu.AddBotsToKnowledgeSpaceAsAdmin(s.SpaceId, botIds, "Bearer "+UserAccessToken)
+	global.Feishu.KnowledgeSpaceAddBotsAsAdmin(s.SpaceId, botIds, "Bearer "+UserAccessToken)
 
 	//设置群成员可见
 	var chats []string
 	chats = append(chats, v.ChatId)
-	global.Feishu.AddMembersToKnowledgeSpace(s.SpaceId, chats, "openchat")
+	global.Feishu.KnowledgeSpaceAddMembers(s.SpaceId, chats, "openchat")
 
 	//复制节点（生成原始文档）
 	//需配置模板文档所在路径
-	nodes := global.Feishu.GetAllNodes(T.SpaceId, T.ParentNodeToken)
+	nodes := global.Feishu.KnowledgeSpaceGetAllNodes(T.SpaceId, T.ParentNodeToken)
 	for _, value := range nodes {
-		subNodeParent := global.Feishu.CopyNode(T.SpaceId, value.NodeToken, s.SpaceId, "", value.Title)
+		subNodeParent := global.Feishu.KnowledgeSpaceCopyNode(T.SpaceId, value.NodeToken, s.SpaceId, "", value.Title)
 		if value.HasChild {
-			n := global.Feishu.GetAllNodes(T.SpaceId, value.NodeToken)
+			n := global.Feishu.KnowledgeSpaceGetAllNodes(T.SpaceId, value.NodeToken)
 			for _, v := range n {
-				global.Feishu.CopyNode(T.SpaceId, v.NodeToken, s.SpaceId, subNodeParent.NodeToken, v.Title)
+				global.Feishu.KnowledgeSpaceCopyNode(T.SpaceId, v.NodeToken, s.SpaceId, subNodeParent.NodeToken, v.Title)
 			}
 		}
 		if subNodeParent.Title == "核心成员与职务" {
 			msg := "请产品经理确认项目成员。\n" + Url.UrlHead + subNodeParent.NodeToken
-			global.Feishu.Send(feishuapi.GroupChatId, v.ChatId, feishuapi.Text, msg)
+			global.Feishu.MessageSend(feishuapi.GroupChatId, v.ChatId, feishuapi.Text, msg)
 		}
 	}
 	logrus.Info("已成功在知识空间建立初始文档")

@@ -52,7 +52,7 @@ func groupTextMessage(messageevent *model.MessageEvent) {
 		handler(messageevent)
 	} else {
 		logrus.Error("Group message failed to find event handler: ", messageevent.Message.Content)
-		global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, "text", "关键词"+" ["+messageevent.Message.Content+"] "+"未定义！")
+		global.Feishu.MessageSend(feishuapi.GroupChatId, messageevent.Message.Chat_id, "text", "关键词"+" ["+messageevent.Message.Content+"] "+"未定义！")
 		return
 	}
 }

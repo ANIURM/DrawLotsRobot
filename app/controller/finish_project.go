@@ -20,7 +20,7 @@ func FinishProject(messageevent *model.MessageEvent) {
 		return
 	}
 
-	allNode := global.Feishu.GetAllNodes(space_id)
+	allNode := global.Feishu.KnowledgeSpaceGetAllNodes(space_id)
 	requirement := map[string]int{"项目介绍": 100, "产品需求文档": 200, "产品测试记录": 200, "用户手册": 300}
 	tooShort := []string{}
 
@@ -41,11 +41,11 @@ func FinishProject(messageevent *model.MessageEvent) {
 
 	if len(requirement) != 0 {
 		text := "以下文档不存在："
-		for key, _ := range requirement {
+		for key := range requirement {
 			text += "<" + key + "> "
 		}
 		text += "请添加相应文档"
-		global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, text)
+		global.Feishu.MessageSend(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, text)
 	}
 
 	if len(tooShort) != 0 {
@@ -54,12 +54,12 @@ func FinishProject(messageevent *model.MessageEvent) {
 			text += "<" + node + ">"
 		}
 		text += "请补充相应内容"
-		global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, text)
+		global.Feishu.MessageSend(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, text)
 	}
 
 	// success
 	if len(requirement) == 0 && len(tooShort) == 0 {
-		global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "结项成功")
+		global.Feishu.MessageSend(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "结项成功")
 		EndGroupTimer(messageevent.Message.Chat_id)
 		// change data in db
 		project, err := model.QueryProjectRecordsByChat(messageevent.Message.Chat_id)
@@ -75,13 +75,13 @@ func FinishProject(messageevent *model.MessageEvent) {
 func recursiveCountNodeSize(space_id string, node *feishuapi.NodeInfo) int {
 	size := 0
 	if node.HasChild {
-		allNode := global.Feishu.GetAllNodes(space_id, node.NodeToken)
+		allNode := global.Feishu.KnowledgeSpaceGetAllNodes(space_id, node.NodeToken)
 		for _, node := range allNode {
 			size += recursiveCountNodeSize(space_id, &node)
 		}
 	}
 
-	content := global.Feishu.GetRawContent(node.ObjToken)
+	content := global.Feishu.DocumentGetRawContent(node.ObjToken)
 
 	size += len(content) / 3 // 3 bytes per chinese character
 	logrus.WithFields(logrus.Fields{"resp": content}).Trace("the ", node.Title, " size is: ", size)

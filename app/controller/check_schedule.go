@@ -24,7 +24,7 @@ func checkScheduleUpdated(groupID string) {
 		logrus.Warn("[schedule] ", groupID, " get space id fail")
 	}
 	_, fileToken := getNodeFileToken(space_id, "排期甘特图", "任务进度管理")
-	allBitables := global.Feishu.GetAllBitables(fileToken)
+	allBitables := global.Feishu.DocumentGetAllBitables(fileToken)
 
 	tableInfoList := GetAllTableInfo(allBitables)
 	logrus.Debug("[schedule] tableInfoList: ", tableInfoList)
@@ -44,9 +44,9 @@ func checkScheduleUpdated(groupID string) {
 	//modified := CheckRecordInfoModified(recordInfoList, oldRecordInfo)
 
 	for _, bittable := range allBitables {
-		tables := global.Feishu.GetAllTablesInBitable(bittable.AppToken)
+		tables := global.Feishu.DocumentGetAllTables(bittable.AppToken)
 		for _, table := range tables {
-			records := global.Feishu.GetAllRecordsInTable(bittable.AppToken, table.TableId)
+			records := global.Feishu.DocumentGetAllRecords(bittable.AppToken, table.TableId)
 			for _, record := range records {
 				var task_name string = ""
 				var task_manager string = ""
@@ -180,7 +180,7 @@ func checkScheduleUpdated(groupID string) {
 	link := getlink(space_id)
 	msg = msg + "欲了解详细内容，请点击: \n" + link
 
-	global.Feishu.Send(feishuapi.UserOpenId, user_id, feishuapi.Text, msg)
+	global.Feishu.MessageSend(feishuapi.UserOpenId, user_id, feishuapi.Text, msg)
 	updatedTasks = nil
 
 	oldRecordInfo = recordInfoList
@@ -189,10 +189,10 @@ func checkScheduleUpdated(groupID string) {
 
 func getNodeFileToken(space_id string, topFile string, secFile string) (string, string) {
 	var nodeToken, fileToken string
-	allNode := global.Feishu.GetAllNodes(space_id)
+	allNode := global.Feishu.KnowledgeSpaceGetAllNodes(space_id)
 	for _, node := range allNode {
 		if node.Title == topFile {
-			allSubNode := global.Feishu.GetAllNodes(space_id, node.NodeToken)
+			allSubNode := global.Feishu.KnowledgeSpaceGetAllNodes(space_id, node.NodeToken)
 			for _, subNode := range allSubNode {
 				if subNode.Title == secFile {
 					nodeToken = subNode.NodeToken
@@ -239,13 +239,13 @@ func getlink(spaceId string) string {
 	var titles []string
 	titles = append(titles, "排期甘特图", "任务进度管理")
 
-	nodes := global.Feishu.GetAllNodes(spaceId)
+	nodes := global.Feishu.KnowledgeSpaceGetAllNodes(spaceId)
 	for _, value := range nodes {
 		if in(value.Title, titles) {
 			msg = msg + Url.UrlHead + value.NodeToken + " \n"
 		}
 		if value.HasChild {
-			n := global.Feishu.GetAllNodes(spaceId, value.NodeToken)
+			n := global.Feishu.KnowledgeSpaceGetAllNodes(spaceId, value.NodeToken)
 			for _, v := range n {
 				if in(v.Title, titles) {
 					msg = msg + Url.UrlHead + v.NodeToken + "\n"

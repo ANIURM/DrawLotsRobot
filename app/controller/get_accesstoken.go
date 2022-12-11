@@ -40,5 +40,5 @@ func GetUserAccessToken(c *gin.Context) {
 	</body>
 	</html>`)
 
-	global.Feishu.Send(feishuapi.UserUserId, TokenUserID, feishuapi.Text, "鉴权成功，您现在可以返回，继续您的操作")
+	global.Feishu.MessageSend(feishuapi.UserUserId, TokenUserID, feishuapi.Text, "鉴权成功，您现在可以返回，继续您的操作")
 }

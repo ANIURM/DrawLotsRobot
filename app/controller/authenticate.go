@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"github.com/YasyaKarasu/feishuapi"
-	"github.com/sirupsen/logrus"
 	"xlab-feishu-robot/app/chat"
 	"xlab-feishu-robot/global"
 	"xlab-feishu-robot/model"
+
+	"github.com/YasyaKarasu/feishuapi"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -22,7 +23,7 @@ func Authenticate(messageevent *model.MessageEvent) model.Privileges {
 	if messageevent.Message.Content == "立项" {
 		chat_id := messageevent.Message.Chat_id
 		if chat_id != LeaderGroupID && chat_id != DevGroupID {
-			global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "抱歉，您暂时没有权限进行 ["+messageevent.Message.Content+"] 操作！")
+			global.Feishu.MessageSend(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "抱歉，您暂时没有权限进行 ["+messageevent.Message.Content+"] 操作！")
 			return model.Other
 		}
 		return model.ProductManagerGroupMembers
@@ -34,7 +35,7 @@ func Authenticate(messageevent *model.MessageEvent) model.Privileges {
 			logrus.Error("[authenticate] ", chat_id, " get project leader id fail")
 		}
 		if chat_id != DevGroupID && messageevent.Sender.Sender_id.Open_id != owner_id {
-			global.Feishu.Send(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "抱歉，您暂时没有权限进行 ["+messageevent.Message.Content+"] 操作！")
+			global.Feishu.MessageSend(feishuapi.GroupChatId, messageevent.Message.Chat_id, feishuapi.Text, "抱歉，您暂时没有权限进行 ["+messageevent.Message.Content+"] 操作！")
 			return model.Other
 		} else {
 			return model.ProjectGroupLeader
