@@ -31,8 +31,6 @@ type Config struct {
 	FeishuProjectFormPath struct {
 		AppTokenForProjectCreat string
 		TableIdForProjectCreat  string
-		AppTokenForMeeting      string
-		TableIdForMeeting       string
 	}
 	TemplateDocs struct {
 		SpaceId         string
