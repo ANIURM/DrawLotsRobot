@@ -14,10 +14,9 @@ import (
 )
 
 var (
-	P         FeishuProjectFormPath
-	T         TemplateDocs
-	Url       UrlStrings
-	MyProject NewProject
+	P   FeishuProjectFormPath
+	T   TemplateDocs
+	Url UrlStrings
 	//为权限管理预留
 	eventForProjectCreat model.MessageEvent // contains user_id
 	TokenUserID          string             // user_id
@@ -36,9 +35,6 @@ type FeishuProjectFormPath struct {
 	//立项问卷
 	AppTokenForProjectCreat string
 	TableIdForProjectCreat  string
-	//会议问卷
-	AppTokenForMeeting string
-	TableIdForMeeting  string
 }
 
 // 知识空间模板文件路径
@@ -98,20 +94,25 @@ func ProjectCreat(event *model.MessageEvent) {
 func InitProject(c *gin.Context) {
 	resp, _ := c.GetRawData()
 	temp := make(map[string]string)
-	json.Unmarshal(resp, &temp)
+	err := json.Unmarshal(resp, &temp)
+	if err != nil {
+		logrus.Error("initProject() ERROR in Unmarshal")
+		return
+	}
 	recordId := temp["record_id"]
 	data := global.Feishu.DocumentGetRecordInByte(P.AppTokenForProjectCreat, P.TableIdForProjectCreat, recordId)
-	err := json.Unmarshal(data, &MyProject)
+	var aProject NewProject
+	err = json.Unmarshal(data, &aProject)
 	if err != nil {
 		logrus.Error("initProject() ERROR")
 		panic(err)
 	}
-	CreateProject()
+	go CreateProject(aProject)
 }
 
-func CreateProject() bool {
+func CreateProject(MyProject NewProject) bool {
 	var result bool = false
-	if UserAccessToken == "" {
+	if UserAccessToken[MyProject.Data.Record.Fields.ProjectManager[0].ID] == "" {
 		err := errors.New("UserAccessToken为空，请再次鉴权！")
 		logrus.Error(err)
 		return false
@@ -142,7 +143,7 @@ func CreateProject() bool {
 	}
 
 	//创建知识空间
-	s := global.Feishu.KnowledgeSpaceCreate("【"+pjt.ProjectSource+"】"+pjt.ProjectName, pjt.ProjectProfile, "Bearer "+UserAccessToken)
+	s := global.Feishu.KnowledgeSpaceCreate("【"+pjt.ProjectSource+"】"+pjt.ProjectName, pjt.ProjectProfile, "Bearer "+UserAccessToken[MyProject.Data.Record.Fields.ProjectManager[0].ID])
 	if v.ChatId != "" {
 		logrus.Info("已成功建立知识空间：" + s.SpaceId)
 	}
@@ -150,7 +151,7 @@ func CreateProject() bool {
 	var botIds []string
 	robotId := global.Feishu.RobotGetInfo().OpenId
 	botIds = append(botIds, robotId)
-	global.Feishu.KnowledgeSpaceAddBotsAsAdmin(s.SpaceId, botIds, "Bearer "+UserAccessToken)
+	global.Feishu.KnowledgeSpaceAddBotsAsAdmin(s.SpaceId, botIds, "Bearer "+UserAccessToken[MyProject.Data.Record.Fields.ProjectManager[0].ID])
 
 	//设置群成员可见
 	var chats []string
@@ -192,14 +193,15 @@ func CreateProject() bool {
 	projectList = append(projectList, project)
 	model.InsertProjectRecords(projectList)
 	logrus.Info("Project: [ ", project.ProjectName, " ] has been inserted into db")
-	
+
 	//启动Timer
 	StartGroupTimer(v.ChatId)
 
 	result = true
 
 	//清除变量，为下一次立项准备
-	UserAccessToken = ""
+	delete(UserAccessToken, MyProject.Data.Record.Fields.ProjectManager[0].ID)
+	logrus.Info("Project: [ ", project.ProjectName, " ] create success!")
 
 	return result
 }

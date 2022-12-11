@@ -9,11 +9,13 @@ import (
 )
 
 var (
-	UserAccessToken string
+	//UserAccessToken string
+	UserAccessToken map[string]string
 )
 
 func GetUserAccessToken(c *gin.Context) {
 	// FIXME
+	UserAccessToken = make(map[string]string)
 	code, status := c.GetQuery("code")
 	if !status {
 		panic("The param 'code' was not obtained")
@@ -21,9 +23,10 @@ func GetUserAccessToken(c *gin.Context) {
 	}
 	returnValue := global.Feishu.GetUserAccessToken(code)
 	// if == nil ?
-	UserAccessToken = returnValue.Access_token
+	//UserAccessToken = returnValue.Access_token
+	UserAccessToken[returnValue.Open_id] = returnValue.Access_token
 	TokenUserID = returnValue.User_id
-	logrus.Info("UserAccessToken: ", UserAccessToken)
+	logrus.Info("UserAccessToken: ", UserAccessToken[returnValue.Open_id])
 	logrus.Info("TokenUserID: ", TokenUserID)
 	// c.String(200, "鉴权成功，您现在可以返回，继续您的操作")
 
