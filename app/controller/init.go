@@ -13,7 +13,7 @@ import (
 func InitEvent() {
 	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
 	InitMessageBind()
-	// AuthCallback()
+	 AuthCallback()
 	// InitDebugSpace()
 	// TestDB()
 	recoverTimer()

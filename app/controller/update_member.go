@@ -32,8 +32,6 @@ func UpdateMember(group_id string) {
 		employeesByName[employee.Name] = append(employeesByName[employee.Name], employee.Id)
 	}
 
-	logrus.Info(employeesByName)
-
 	allNode := global.Feishu.KnowledgeSpaceGetAllNodes(space_id)
 	allNameInRecords := make(map[string]bool)
 	for _, node := range allNode {
