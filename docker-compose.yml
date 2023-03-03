@@ -1,0 +1,27 @@
+version: '4.17'
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+    ports:
+      - "27017:27017"
+    volumes:
+      - "C:/docker/mongo/data:/data/db"
+      - "C:/docker/mongo/logs:/var/log/mongodb"
+    expose:
+      - 27017
+      
+  feishu_rob:
+    build: .
+    container_name: feishu_rob
+    restart: unless-stopped
+    ports:
+      - "10001:10001"
+    depends_on:
+      - mongodb
+    links:
+      - mongodb
