@@ -2,16 +2,14 @@ package main
 
 import (
 	"fmt"
-	"xlab-feishu-robot/app"
-	"xlab-feishu-robot/config"
-	"xlab-feishu-robot/docs"
-	"xlab-feishu-robot/global"
-	"xlab-feishu-robot/model"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"xlab-feishu-robot/app"
+	"xlab-feishu-robot/config"
+	"xlab-feishu-robot/docs"
+	"xlab-feishu-robot/global"
 )
 
 func main() {
@@ -28,10 +26,6 @@ func main() {
 	// feishu api client
 	config.SetupFeishuApiClient(&global.Feishu)
 	global.Feishu.StartTokenTimer()
-
-	// database setup
-	config.SetupDatabase()
-	model.InitDatabase()
 
 	// robot server
 	r := gin.Default()
