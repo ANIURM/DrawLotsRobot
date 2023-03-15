@@ -1,9 +1,6 @@
 package config
 
 import (
-	"xlab-feishu-robot/app/controller"
-	"xlab-feishu-robot/db"
-
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -16,38 +13,6 @@ type Config struct {
 
 		// add your configuration fields here
 		ExampleField1 string
-	}
-
-	// add your configuration fields here
-	ExampleField2 struct {
-		ExampleField3 int
-	}
-	LeaderGroup struct {
-		ChatId string
-	}
-	DevGroup struct {
-		ChatId string
-	}
-	FeishuProjectFormPath struct {
-		AppTokenForProjectCreat string
-		TableIdForProjectCreat  string
-	}
-	TemplateDocs struct {
-		SpaceId         string
-		ParentNodeToken string
-	}
-	UrlStrings struct {
-		UrlHead                  string
-		UrlForProjectCreate      string
-		UrlForGetUserAccessToken string
-		UrlForMeeting            string
-	}
-	Database struct {
-		Host       string
-		Port       string
-		User       string
-		Password   string
-		AuthSource string
 	}
 }
 
@@ -71,13 +36,4 @@ func ReadConfig() {
 
 func SetupFeishuApiClient(cli *feishuapi.AppClient) {
 	cli.Conf = C.Feishu
-	controller.P = C.FeishuProjectFormPath
-	controller.T = C.TemplateDocs
-	controller.Url = C.UrlStrings
-	controller.LeaderGroupID = C.LeaderGroup.ChatId
-	controller.DevGroupID = C.DevGroup.ChatId
-}
-
-func SetupDatabase() {
-	db.Conf = db.Config{Url: "mongodb://" + C.Database.User + ":" + C.Database.Password + "@" + C.Database.Host + ":" + C.Database.Port + "/" + C.Database.AuthSource}
 }
