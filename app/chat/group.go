@@ -26,5 +26,5 @@ func group(messageevent *model.MessageEvent) {
 func groupTextMessage(messageevent *model.MessageEvent) {
 	logrus.WithFields(logrus.Fields{"message content": messageevent.Message.Content}).Info("Receive group TEXT message")
 
-	controller.DrawLots(messageevent)
+	controller.DrawLotsRobot(messageevent)
 }
