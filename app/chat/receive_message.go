@@ -14,8 +14,6 @@ func Receive(event map[string]any) {
 	messageevent := model.MessageEvent{}
 	map2struct(event, &messageevent)
 	switch messageevent.Message.Chat_type {
-	case "p2p":
-		p2p(&messageevent)
 	case "group":
 		group(&messageevent)
 	default:

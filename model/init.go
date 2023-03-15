@@ -24,8 +24,7 @@ var (
 
 func InitDatabase() {
 	client = db.Connect()
-	project = client.Database("xlabFeishuRobot").Collection("project")
-	task = client.Database("xlabFeishuRobot").Collection("task")
+	//project = client.Database("xlabFeishuRobot").Collection("project")
 
 	// create index on ChatID
 	name, err := project.Indexes().CreateOne(context.TODO(), mongo.IndexModel{Keys: bson.D{{Key: "ProjectChat", Value: 1}}})

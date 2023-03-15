@@ -49,5 +49,4 @@ func AuthRegister(f chat.AuthHandler) {
 		logrus.Warning("Double declaration of group message handler: ", "鉴权")
 	}
 	chat.AuthMap["鉴权"] = f
-
 }

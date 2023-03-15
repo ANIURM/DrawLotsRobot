@@ -1,4 +1,4 @@
-# XLab 飞书机器人模板
+# XLab 飞书机器人
 
 | Web Framework | Log Manager     | Config Manager | Api Documentation  | Feishu Api Client     |
 |:-------------:|:---------------:|:--------------:|:------------------:|:---------------------:|

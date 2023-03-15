@@ -16,9 +16,6 @@ func Register(r *gin.Engine) {
 	r.GET("/api/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
-	// register your controllers here
-	r.GET("/api/getUserAccessToken", controller.GetUserAccessToken)
-	r.POST("/api/project", controller.InitProject)
 
 	// DO NOT CHANGE LINES BELOW
 	// register dispatcher
