@@ -2,11 +2,12 @@ package chat
 
 import (
 	"strings"
-	"xlab-feishu-robot/app/controller"
 	"xlab-feishu-robot/model"
 
 	"github.com/sirupsen/logrus"
 )
+
+var groupMessageMap = make(map[string]messageHandler)
 
 func group(messageevent *model.MessageEvent) {
 	switch strings.ToUpper(messageevent.Message.Message_type) {
@@ -20,5 +21,13 @@ func group(messageevent *model.MessageEvent) {
 func groupTextMessage(messageevent *model.MessageEvent) {
 	logrus.WithFields(logrus.Fields{"message content": messageevent.Message.Content}).Info("Receive group TEXT message")
 
-	controller.DrawLotsRobot(messageevent)
+	groupMessageMap["drawlots"](messageevent)
+}
+
+func GroupMessageRegister(f messageHandler, s string) {
+
+	if _, isEventExist := groupMessageMap[s]; isEventExist {
+		logrus.Warning("Double declaration of group message handler: ", s)
+	}
+	groupMessageMap[s] = f
 }

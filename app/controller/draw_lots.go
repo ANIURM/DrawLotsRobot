@@ -12,10 +12,10 @@ import (
 	"xlab-feishu-robot/model"
 )
 
-type AtTag struct {
-	Tag      string `json:"tag"`
-	UserID   string `json:"user_id"`
-	UserName string `json:"user_name"`
+type atTag struct {
+	tag      string `json:"tag"`
+	userID   string `json:"user_id"`
+	userName string `json:"user_name"`
 }
 
 // Define state
@@ -80,18 +80,18 @@ func InputError(messageevent *model.MessageEvent) {
 }
 
 func GetParticipants(messageevent *model.MessageEvent) (err error) {
-	// Unmarshal the JSON input into a slice of AtTag structs
-	var atTags []AtTag
+	// Unmarshal the JSON input into a slice of atTag structs
+	var atTags []atTag
 	err = json.Unmarshal([]byte(messageevent.Message.Content), &atTags)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"error": err}).Error("Unmarshal JSON input")
 		return
 	}
 
-	// Extract the user_id fields for each AtTag object
+	// Extract the user_id fields for each atTag object
 	for _, atTag := range atTags {
-		if atTag.Tag == "at" {
-			participantsID = append(participantsID, atTag.UserID)
+		if atTag.tag == "at" {
+			participantsID = append(participantsID, atTag.userID)
 		}
 	}
 	return

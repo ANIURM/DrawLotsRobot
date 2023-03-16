@@ -10,11 +10,11 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - "C:/docker/mongo/data:/data/db"
-      - "C:/docker/mongo/logs:/var/log/mongodb"
+      - "./mongo/data:/data/db"
+      - "./mongo/logs:/var/log/mongodb"
     expose:
       - 27017
-      
+
   feishu_rob:
     build: .
     container_name: feishu_rob
