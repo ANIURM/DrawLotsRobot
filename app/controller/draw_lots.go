@@ -1,8 +1,7 @@
 package controller
 
 import (
-	"encoding/json"
-	"fmt"
+	"encoding/xml"
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -12,8 +11,7 @@ import (
 	"xlab-feishu-robot/model"
 )
 
-type atTag struct {
-	tag      string `json:"tag"`
+type at struct {
 	userID   string `json:"user_id"`
 	userName string `json:"user_name"`
 }
@@ -30,6 +28,7 @@ var currentState = X
 
 // These IDs are all OPEN_ID
 var participantsID []string
+var mapIDName = make(map[string]string)
 var count int
 
 // DrawLotsRobot is a function to draw lots
@@ -79,31 +78,30 @@ func InputError(messageevent *model.MessageEvent) {
 	currentState = X
 }
 
+// GetParticipants is a function to get participants' ID and name
+// The format of message content is like this:
+// <at user_id="xxx">xxx</at><at user_id="xxx">xxx</at><at user_id="xxx">xxx</at>
+// So we need to use xml.Unmarshal to get the participants' ID and name
 func GetParticipants(messageevent *model.MessageEvent) (err error) {
-	// Unmarshal the JSON input into a slice of atTag structs
-	var atTags []atTag
-	err = json.Unmarshal([]byte(messageevent.Message.Content), &atTags)
+	var ats []at
+	err = xml.Unmarshal([]byte(messageevent.Message.Content), &ats)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"error": err}).Error("Unmarshal JSON input")
+		logrus.Error(err)
 		return
 	}
-
-	// Extract the user_id fields for each atTag object
-	for _, atTag := range atTags {
-		if atTag.tag == "at" {
-			participantsID = append(participantsID, atTag.userID)
-		}
+	for _, at := range ats {
+		participantsID = append(participantsID, at.userID)
+		mapIDName[at.userID] = at.userName
 	}
 	return
 }
 
 func GetNumber(messageevent *model.MessageEvent) (number int, err error) {
-	// Remove the prefix and suffix of the message
-	messageevent.Message.Content = strings.TrimSuffix(strings.TrimPrefix(messageevent.Message.Content, "{\"text\":\""), "\"}")
-	// Remove spaces in front of the message
-	numberString := messageevent.Message.Content[strings.Index(messageevent.Message.Content, " ")+1:]
-	// Convert string to int
-	number, err = strconv.Atoi(numberString)
+	number, err = strconv.Atoi(messageevent.Message.Content)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
 	return
 }
 
@@ -131,52 +129,15 @@ func DrawLots(participantsID []string, count int, size int, groupID string) (gro
 }
 
 func SendResult(groups [][]string, groupID string) {
-	query := make(map[string]string)
-	query["receive_id_type"] = string(feishuapi.GroupChatId)
-
-	// create the content array
-	content := make([]interface{}, 0)
-
-	// loop through the groups and add group labels and IDs to the content array
+	// string builder
+	var sb strings.Builder
 	for i, group := range groups {
-		// add group label
-		content = append(content, map[string]interface{}{
-			"tag":  "text",
-			"text": fmt.Sprintf("group%d: ", i+1),
-		})
-
-		// loop through the group IDs and add them to the content array
-		for _, id := range group {
-			content = append(content, map[string]interface{}{
-				"tag":     "at",
-				"user_id": id,
-			})
+		sb.WriteString("第" + strconv.Itoa(i+1) + "组：")
+		// @ user in the format of <at user_id="xxx">xxx</at>
+		for _, userID := range group {
+			sb.WriteString("<at user_id=\"" + userID + "\">" + mapIDName[userID] + "</at>")
 		}
+		sb.WriteString("\n")
 	}
-
-	// create the final payload
-	payload := map[string]interface{}{
-		"post": map[string]interface{}{
-			"zh_cn": map[string]interface{}{
-				"content": content,
-			},
-		},
-	}
-	// encode the payload to JSON
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	body := make(map[string]string)
-	body["receive_id"] = groupID
-	body["content"] = string(jsonData)
-	body["msg_type"] = "post"
-
-	resp := feishuapi.AppClient{}.Request("post", "open-apis/im/v1/messages", query, nil, body)
-	if resp == nil {
-		logrus.WithFields(logrus.Fields{
-			"ReceiveID": groupID,
-		}).Error("Send post failed")
-	}
+	global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, sb.String())
 }

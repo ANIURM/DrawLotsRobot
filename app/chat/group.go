@@ -19,6 +19,10 @@ func group(messageevent *model.MessageEvent) {
 }
 
 func groupTextMessage(messageevent *model.MessageEvent) {
+	// Remove the prefix and suffix of the message content
+	messageevent.Message.Content = strings.TrimSuffix(strings.TrimPrefix(messageevent.Message.Content, "{\"text\":\""), "\"}")
+	// Get valid message content
+	messageevent.Message.Content = messageevent.Message.Content[strings.Index(messageevent.Message.Content, " ")+1:]
 	logrus.WithFields(logrus.Fields{"message content": messageevent.Message.Content}).Info("Receive group TEXT message")
 
 	groupMessageMap["drawlots"](messageevent)
