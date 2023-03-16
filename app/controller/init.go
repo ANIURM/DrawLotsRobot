@@ -7,9 +7,4 @@ import (
 
 func InitEvent() {
 	dispatcher.RegisterListener(chat.Receive, "im.message.receive_v1")
-	AuthCallback()
-}
-
-func AuthCallback() {
-	AuthRegister(Authenticate) //鉴权回调
 }

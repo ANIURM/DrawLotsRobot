@@ -8,12 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var groupMessageMap = make(map[string]messageHandler)
-
-type AuthHandler func(messageevent *model.MessageEvent) model.Privileges
-
-var AuthMap = make(map[string]AuthHandler)
-
 func group(messageevent *model.MessageEvent) {
 	switch strings.ToUpper(messageevent.Message.Message_type) {
 	case "TEXT":
