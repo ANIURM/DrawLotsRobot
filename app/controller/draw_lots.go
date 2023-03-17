@@ -24,7 +24,9 @@ const (
 	S2 = 3 // 问每组人数
 )
 
-var currentState = X
+// Using map to store state
+// {groupID: state}
+var stateMap = map[string]int{}
 
 // These IDs are all OPEN_ID
 var participantsID []string
@@ -35,9 +37,10 @@ var count int
 func DrawLotsRobot(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
 	var err error
-	switch currentState {
+	// If groupID is not in stateMap, then stateMap[groupID] will be 0(X)
+	switch stateMap[groupID] {
 	case X:
-		currentState = S0
+		stateMap[groupID] = S0
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "请输入参与人员")
 	case S0:
 		err = GetParticipants(messageevent)
@@ -45,7 +48,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 			InputError(messageevent)
 			return
 		}
-		currentState = S1
+		stateMap[groupID] = S1
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "请问需要抽取几组？")
 	case S1:
 		count, err = GetNumber(messageevent)
@@ -53,7 +56,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 			InputError(messageevent)
 			return
 		}
-		currentState = S2
+		stateMap[groupID] = S2
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "请问每组需要几人？")
 	case S2:
 		size, err := GetNumber(messageevent)
@@ -67,7 +70,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 			InputError(messageevent)
 			return
 		}
-		currentState = X
+		stateMap[groupID] = X
 		SendResult(groups, groupID)
 	}
 }
@@ -75,7 +78,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 func InputError(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
 	global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "输入格式有误，请重新输入")
-	currentState = X
+	stateMap[groupID] = X
 }
 
 // GetParticipants is a function to get participants' ID and name
