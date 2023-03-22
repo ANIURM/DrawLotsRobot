@@ -33,4 +33,5 @@ go.work
 
 /log/
 /.vscode/
+.idea
 config.yaml
