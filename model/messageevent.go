@@ -28,15 +28,25 @@ type MessageEvent struct {
 		Chat_type    string `json:"chat_type"`
 		Message_type string `json:"message_type"`
 		Content      string `json:"content"`
-		Metions      struct {
+		//Metions      struct {
+		//	Key string `json:"key"`
+		//	Id  struct {
+		//		Union_id string `json:"union_id"`
+		//		Open_id  string `json:"open_id"`
+		//		User_id  string `json:"user_id"`
+		//	} `json:"id"`
+		//	Name       string `json:"name"`
+		//	Tenant_key string `json:"tenant_key"`
+		//} `json:"metions"`
+		Mentions []struct {
 			Key string `json:"key"`
 			Id  struct {
 				Union_id string `json:"union_id"`
 				Open_id  string `json:"open_id"`
 				User_id  string `json:"user_id"`
-			} `json:"id"`
+			}
 			Name       string `json:"name"`
 			Tenant_key string `json:"tenant_key"`
-		} `json:"metions"`
+		} `json:"mentions"`
 	} `json:"message"`
 }
