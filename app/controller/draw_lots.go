@@ -83,7 +83,8 @@ func GetParticipants(messageevent *model.MessageEvent) (err error) {
 	// Clear last-time participants
 	participants = nil
 	// Get openID and name of participants from messageevent.Message.Mentions
-	for _, mention := range messageevent.Message.Mentions {
+	// Skip the first mention, which is the robot itself
+	for _, mention := range messageevent.Message.Mentions[1:] {
 		participants = append(participants, participant{mention.Id.Open_id, mention.Name})
 	}
 	return
@@ -103,8 +104,7 @@ func DrawLots(participants []participant, count int, size int, groupID string) (
 	// TODO: Remove duplicate participants
 
 	// Check if the number of participants is enough
-	length := len(participants)
-	if length < count*size {
+	if len(participants) < count*size {
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "参与人数不足")
 		return
 	}
@@ -113,7 +113,7 @@ func DrawLots(participants []participant, count int, size int, groupID string) (
 		var group []participant
 		for j := 0; j < size; j++ {
 			// Pick a random number
-			random := rand.Intn(length)
+			random := rand.Intn(len(participants))
 			// Pick a person from participantsID randomly
 			group = append(group, participants[random])
 			// Remove the person from participants
