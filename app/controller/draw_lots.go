@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/xml"
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -11,9 +10,9 @@ import (
 	"xlab-feishu-robot/model"
 )
 
-type at struct {
-	userID   string `json:"user_id"`
-	userName string `json:"user_name"`
+type participant struct {
+	openID string
+	name   string
 }
 
 // Define state
@@ -28,9 +27,7 @@ const (
 // {groupID: state}
 var stateMap = map[string]int{}
 
-// These IDs are all OPEN_ID
-var participantsID []string
-var mapIDName = make(map[string]string)
+var participants []participant
 var count int
 
 // DrawLotsRobot is a function to draw lots
@@ -65,7 +62,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 			return
 		}
 		// start to draw lots
-		groups, err := DrawLots(participantsID, count, size, groupID)
+		groups, err := DrawLots(participants, count, size, groupID)
 		if err != nil {
 			InputError(messageevent)
 			return
@@ -82,19 +79,12 @@ func InputError(messageevent *model.MessageEvent) {
 }
 
 // GetParticipants is a function to get participants' ID and name
-// The format of message content is like this:
-// <at user_id="xxx">xxx</at><at user_id="xxx">xxx</at><at user_id="xxx">xxx</at>
-// So we need to use xml.Unmarshal to get the participants' ID and name
 func GetParticipants(messageevent *model.MessageEvent) (err error) {
-	var ats []at
-	err = xml.Unmarshal([]byte(messageevent.Message.Content), &ats)
-	if err != nil {
-		logrus.Error(err)
-		return
-	}
-	for _, at := range ats {
-		participantsID = append(participantsID, at.userID)
-		mapIDName[at.userID] = at.userName
+	// Clear last-time participants
+	participants = nil
+	// Get openID and name of participants from messageevent.Message.Mentions
+	for _, mention := range messageevent.Message.Mentions {
+		participants = append(participants, participant{mention.Id.Open_id, mention.Name})
 	}
 	return
 }
@@ -109,36 +99,39 @@ func GetNumber(messageevent *model.MessageEvent) (number int, err error) {
 }
 
 // DrawLots is a function to pick [count] groups from participantsID, each group has [size] people
-func DrawLots(participantsID []string, count int, size int, groupID string) (groups [][]string, err error) {
+func DrawLots(participants []participant, count int, size int, groupID string) (groups [][]participant, err error) {
+	// TODO: Remove duplicate participants
+
 	// Check if the number of participants is enough
-	if len(participantsID) < count*size {
+	length := len(participants)
+	if length < count*size {
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "参与人数不足")
 		return
 	}
 	// Pick [count] groups from participantsID randomly
 	for i := 0; i < count; i++ {
-		var group []string
+		var group []participant
 		for j := 0; j < size; j++ {
 			// Pick a random number
-			random := rand.Intn(len(participantsID))
+			random := rand.Intn(length)
 			// Pick a person from participantsID randomly
-			group = append(group, participantsID[random])
-			// Remove the person from participantsID
-			participantsID = append(participantsID[:random], participantsID[random+1:]...)
+			group = append(group, participants[random])
+			// Remove the person from participants
+			participants = append(participants[:random], participants[random+1:]...)
 		}
 		groups = append(groups, group)
 	}
 	return
 }
 
-func SendResult(groups [][]string, groupID string) {
+func SendResult(groups [][]participant, groupID string) {
 	// string builder
 	var sb strings.Builder
 	for i, group := range groups {
 		sb.WriteString("第" + strconv.Itoa(i+1) + "组：")
 		// @ user in the format of <at user_id="xxx">xxx</at>
-		for _, userID := range group {
-			sb.WriteString("<at user_id=\"" + userID + "\">" + mapIDName[userID] + "</at>")
+		for _, person := range group {
+			sb.WriteString("<at user_id=\"" + person.openID + "\">" + person.name + "</at>")
 		}
 		sb.WriteString("\n")
 	}
