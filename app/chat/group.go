@@ -25,6 +25,10 @@ func groupTextMessage(messageevent *model.MessageEvent) {
 	messageevent.Message.Content = messageevent.Message.Content[strings.Index(messageevent.Message.Content, " ")+1:]
 	logrus.WithFields(logrus.Fields{"message content": messageevent.Message.Content}).Info("Receive group TEXT message")
 
+	// If the robot is triggered by accident, return
+	if isAccident(messageevent) {
+		return
+	}
 	groupMessageMap["drawlots"](messageevent)
 }
 
@@ -34,4 +38,13 @@ func GroupMessageRegister(f messageHandler, s string) {
 		logrus.Warning("Double declaration of group message handler: ", s)
 	}
 	groupMessageMap[s] = f
+}
+
+// isAccident is a function to judge whether the robot is triggered by accident
+// If is accident, return true; else return false
+func isAccident(messageevent *model.MessageEvent) bool {
+	if strings.Contains(messageevent.Message.Content, "@_all") {
+		return true
+	}
+	return false
 }
