@@ -82,12 +82,32 @@ func inputError(messageevent *model.MessageEvent) {
 func getParticipants(messageevent *model.MessageEvent) (err error) {
 	// Clear last-time participants
 	participants = nil
+	if wantAllMembers(messageevent.Message.Content) {
+		getAllGroupMembers(messageevent.Message.Chat_id)
+	} else {
+		getMentionedPerson(messageevent)
+	}
+	return
+}
+
+func wantAllMembers(content string) bool {
+	// Check if the message content contains "所有人" 或者 "all"
+	return strings.Contains(content, "所有人") || strings.Contains(content, "all")
+}
+
+func getMentionedPerson(messageevent *model.MessageEvent) {
 	// Get openID and name of participants from messageevent.Message.Mentions
 	// Skip the first mention, which is the robot itself
 	for _, mention := range messageevent.Message.Mentions[1:] {
 		participants = append(participants, participant{mention.Id.Open_id, mention.Name})
 	}
-	return
+}
+
+func getAllGroupMembers(groupID string) {
+	allMembers := global.Feishu.GroupGetMembers(groupID, feishuapi.OpenId)
+	for _, member := range allMembers {
+		participants = append(participants, participant{member.MemberId, member.Name})
+	}
 }
 
 func getNumber(messageevent *model.MessageEvent) (number int, err error) {
