@@ -40,46 +40,46 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 		stateMap[groupID] = S0
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "请输入参与人员")
 	case S0:
-		err = GetParticipants(messageevent)
+		err = getParticipants(messageevent)
 		if err != nil {
-			InputError(messageevent)
+			inputError(messageevent)
 			return
 		}
 		stateMap[groupID] = S1
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "请问需要抽取几组？")
 	case S1:
-		count, err = GetNumber(messageevent)
+		count, err = getNumber(messageevent)
 		if err != nil {
-			InputError(messageevent)
+			inputError(messageevent)
 			return
 		}
 		stateMap[groupID] = S2
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "请问每组需要几人？")
 	case S2:
-		size, err := GetNumber(messageevent)
+		size, err := getNumber(messageevent)
 		if err != nil {
-			InputError(messageevent)
+			inputError(messageevent)
 			return
 		}
 		// start to draw lots
-		groups, err := DrawLots(participants, count, size, groupID)
+		groups, err := drawLots(participants, count, size, groupID)
 		if err != nil {
-			InputError(messageevent)
+			inputError(messageevent)
 			return
 		}
 		stateMap[groupID] = X
-		SendResult(groups, groupID)
+		sendResult(groups, groupID)
 	}
 }
 
-func InputError(messageevent *model.MessageEvent) {
+func inputError(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
 	global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "输入格式有误，请重新输入")
 	stateMap[groupID] = X
 }
 
-// GetParticipants is a function to get participants' ID and name
-func GetParticipants(messageevent *model.MessageEvent) (err error) {
+// getParticipants is a function to get participants' ID and name
+func getParticipants(messageevent *model.MessageEvent) (err error) {
 	// Clear last-time participants
 	participants = nil
 	// Get openID and name of participants from messageevent.Message.Mentions
@@ -90,7 +90,7 @@ func GetParticipants(messageevent *model.MessageEvent) (err error) {
 	return
 }
 
-func GetNumber(messageevent *model.MessageEvent) (number int, err error) {
+func getNumber(messageevent *model.MessageEvent) (number int, err error) {
 	number, err = strconv.Atoi(messageevent.Message.Content)
 	if err != nil {
 		logrus.Error(err)
@@ -99,8 +99,8 @@ func GetNumber(messageevent *model.MessageEvent) (number int, err error) {
 	return
 }
 
-// DrawLots is a function to pick [count] groups from participantsID, each group has [size] people
-func DrawLots(participants []participant, count int, size int, groupID string) (groups [][]participant, err error) {
+// drawLots is a function to pick [count] groups from participantsID, each group has [size] people
+func drawLots(participants []participant, count int, size int, groupID string) (groups [][]participant, err error) {
 	// TODO: Remove duplicate participants
 
 	// Check if the number of participants is enough
@@ -124,7 +124,7 @@ func DrawLots(participants []participant, count int, size int, groupID string) (
 	return
 }
 
-func SendResult(groups [][]participant, groupID string) {
+func sendResult(groups [][]participant, groupID string) {
 	// string builder
 	var sb strings.Builder
 	for i, group := range groups {
