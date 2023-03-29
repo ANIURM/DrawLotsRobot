@@ -33,6 +33,12 @@ var count int
 // DrawLotsRobot is a function to draw lots
 func DrawLotsRobot(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
+	// Check whether the robot needs to be reset
+	if needReset(messageevent.Message.Content) {
+		reset(groupID)
+		return
+	}
+
 	var err error
 	// If groupID is not in stateMap, then stateMap[groupID] will be 0(X)
 	switch stateMap[groupID] {
@@ -156,4 +162,18 @@ func sendResult(groups [][]participant, groupID string) {
 		sb.WriteString("\n")
 	}
 	global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, sb.String())
+}
+
+// needReset is a function to check whether the robot needs to be reset
+// Return true if the robot needs to be reset, otherwise return false
+func needReset(content string) bool {
+	if strings.Contains(content, "reset") || strings.Contains(content, "重置") {
+		return true
+	} else {
+		return false
+	}
+}
+
+func reset(groupID string) {
+	stateMap[groupID] = X
 }
