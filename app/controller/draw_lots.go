@@ -39,6 +39,11 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 		reset(groupID)
 		return
 	}
+	// Check whether the user need help
+	if needHelp(messageevent.Message.Content) {
+		help(groupID)
+		return
+	}
 
 	var err error
 	// If groupID is not in stateMap, then stateMap[groupID] will be 0(X)
@@ -184,4 +189,24 @@ func needReset(content string) bool {
 
 func reset(groupID string) {
 	stateMap[groupID] = X
+}
+
+func needHelp(content string) bool {
+	if strings.Contains(content, "help") || strings.Contains(content, "帮助") {
+		return true
+	} else {
+		return false
+	}
+}
+
+func help(groupID string) {
+	helpMessage := "抽签机器人使用说明：\n"
+	helpMessage += "1. @机器人，启动抽签\n"
+	helpMessage += "2. 输入@机器人 所有人 或者 @机器人 all，抽取所有人。输入@机器人 @xxx @xxx，抽取@的人\n"
+	helpMessage += "3. 输入@机器人 组数\n"
+	helpMessage += "4. 输入@机器人 每组人数\n"
+	helpMessage += "即可获得抽签结果\n"
+	helpMessage += "输入@机器人 reset 或者 @机器人 重置，重置抽签机器人\n"
+	helpMessage += "输入@机器人 help 或者 @机器人 帮助，查看抽签机器人使用说明\n"
+	global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, helpMessage)
 }
