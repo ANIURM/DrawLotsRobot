@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"github.com/YasyaKarasu/feishuapi"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -48,7 +49,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 	case S0:
 		err = getParticipants(messageevent)
 		if err != nil {
-			inputError(messageevent)
+			inputError(messageevent, err)
 			return
 		}
 		stateMap[groupID] = S1
@@ -56,7 +57,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 	case S1:
 		count, err = getNumber(messageevent)
 		if err != nil {
-			inputError(messageevent)
+			inputError(messageevent, err)
 			return
 		}
 		stateMap[groupID] = S2
@@ -64,13 +65,13 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 	case S2:
 		size, err := getNumber(messageevent)
 		if err != nil {
-			inputError(messageevent)
+			inputError(messageevent, err)
 			return
 		}
 		// start to draw lots
 		groups, err := drawLots(participants, count, size, groupID)
 		if err != nil {
-			inputError(messageevent)
+			inputError(messageevent, err)
 			return
 		}
 		stateMap[groupID] = X
@@ -78,10 +79,11 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 	}
 }
 
-func inputError(messageevent *model.MessageEvent) {
+func inputError(messageevent *model.MessageEvent, err error) {
 	groupID := messageevent.Message.Chat_id
 	global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "输入格式有误，请重新输入")
 	stateMap[groupID] = X
+	logrus.Error(err)
 }
 
 // getParticipants is a function to get participants' ID and name
@@ -92,6 +94,9 @@ func getParticipants(messageevent *model.MessageEvent) (err error) {
 		getAllGroupMembers(messageevent.Message.Chat_id)
 	} else {
 		getMentionedPerson(messageevent)
+	}
+	if len(participants) == 0 {
+		err = errors.New("no participants")
 	}
 	return
 }
@@ -121,6 +126,9 @@ func getNumber(messageevent *model.MessageEvent) (number int, err error) {
 	if err != nil {
 		logrus.Error(err)
 		return
+	}
+	if number <= 0 {
+		err = errors.New("number is less than 0")
 	}
 	return
 }
