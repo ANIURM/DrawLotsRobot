@@ -28,9 +28,9 @@ const (
 // {groupID: state}
 var stateMap = map[string]int{}
 
-// Using map to store participants
+// Using map to store participantsMap
 // {groupID: []participant}
-var participants map[string][]participant
+var participantsMap = map[string][]participant{}
 var count int
 
 // DrawLotsRobot is a function to draw lots
@@ -76,7 +76,7 @@ func DrawLotsRobot(messageevent *model.MessageEvent) {
 			return
 		}
 		// start to draw lots
-		groups, err := drawLots(participants, count, size, groupID)
+		groups, err := drawLots(participantsMap, count, size, groupID)
 		if err != nil {
 			inputError(messageevent, err)
 			return
@@ -93,18 +93,18 @@ func inputError(messageevent *model.MessageEvent, err error) {
 	logrus.Error(err)
 }
 
-// getParticipants is a function to get participants' ID and name
+// getParticipants is a function to get participantsMap' ID and name
 func getParticipants(messageevent *model.MessageEvent) (err error) {
 	groupID := messageevent.Message.Chat_id
-	// Clear last-time participants
-	participants[groupID] = nil
+	// Clear last-time participantsMap
+	participantsMap[groupID] = nil
 	if wantAllMembers(messageevent.Message.Content) {
 		getAllGroupMembers(groupID)
 	} else {
 		getMentionedPerson(messageevent)
 	}
-	if len(participants[groupID]) == 0 {
-		err = errors.New("no participants")
+	if len(participantsMap[groupID]) == 0 {
+		err = errors.New("no participantsMap")
 	}
 	return
 }
@@ -116,17 +116,17 @@ func wantAllMembers(content string) bool {
 
 func getMentionedPerson(messageevent *model.MessageEvent) {
 	groupID := messageevent.Message.Chat_id
-	// Get openID and name of participants from messageevent.Message.Mentions
+	// Get openID and name of participantsMap from messageevent.Message.Mentions
 	// Skip the first mention, which is the robot itself
 	for _, mention := range messageevent.Message.Mentions[1:] {
-		participants[groupID] = append(participants[groupID], participant{mention.Id.Open_id, mention.Name})
+		participantsMap[groupID] = append(participantsMap[groupID], participant{mention.Id.Open_id, mention.Name})
 	}
 }
 
 func getAllGroupMembers(groupID string) {
 	allMembers := global.Feishu.GroupGetMembers(groupID, feishuapi.OpenId)
 	for _, member := range allMembers {
-		participants[groupID] = append(participants[groupID], participant{member.MemberId, member.Name})
+		participantsMap[groupID] = append(participantsMap[groupID], participant{member.MemberId, member.Name})
 	}
 }
 
@@ -144,9 +144,9 @@ func getNumber(messageevent *model.MessageEvent) (number int, err error) {
 
 // drawLots is a function to pick [count] groups from participantsID, each group has [size] people
 func drawLots(participants map[string][]participant, count int, size int, groupID string) (groups [][]participant, err error) {
-	// TODO: Remove duplicate participants
+	// TODO: Remove duplicate participantsMap
 
-	// Check if the number of participants is enough
+	// Check if the number of participantsMap is enough
 	if len(participants[groupID]) < count*size {
 		global.Feishu.MessageSend(feishuapi.GroupChatId, groupID, feishuapi.Text, "参与人数不足")
 		return
@@ -159,7 +159,7 @@ func drawLots(participants map[string][]participant, count int, size int, groupI
 			random := rand.Intn(len(participants[groupID]))
 			// Pick a person from participantsID randomly
 			group = append(group, participants[groupID][random])
-			// Remove the person from participants
+			// Remove the person from participantsMap
 			participants[groupID] = append(participants[groupID][:random], participants[groupID][random+1:]...)
 		}
 		groups = append(groups, group)
