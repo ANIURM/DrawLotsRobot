@@ -9,35 +9,3 @@ feishu:
 server:
   # 端口，请根据实际情况为准
   port:
-
-# 项目经理群 chat_id
-leaderGroup:
-
-# 开发群 chat_id
-devGroup:
-
-
-feishuProjectFormPath:
-  #飞书立项表
-  appTokenForProjectCreat:
-  tableIdForProjectCreat:
-
-urlStrings:
-  #企业文档前缀
-  urlHead: "https://xn4zlkzg4p.feishu.cn/wiki/"
-  # 立项问卷
-  urlForProjectCreate:
-  # 用户鉴权链接
-  urlForGetUserAccessToken:
-
-templateDocs:
-  #知识空间模板文档
-  spaceId:
-  parentNodeToken:
-
-database:
-  host:
-  port:
-  user:
-  password:
-  authSource:
